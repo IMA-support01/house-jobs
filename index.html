@@ -346,15 +346,28 @@ textarea.copy{min-height:280px;font-size:16px}
 
   /* ---------- state ---------- */
   function mkItems(zid, names, tag) { return names.map(function (n, i) { return { id: zid + (tag || 't') + (i + 1), name: n }; }); }
-  // The house as Michal laid it out on 28 Sep: hallway and laundry room, kitchen, dining room, living room, terrace.
-  // Four zones of about the same size, apart from the kitchen, which everyone gets in turn.
-  function houseZones(kitchen) {
-    return [
-      kitchen || { id: 'z1', name: 'Kitchen', items: mkItems('z1', ['Hob', 'Oven front', 'Fridge clear-out', 'Sink', 'Mop the floor']) },
-      { id: 'z2', name: 'Hallway and laundry room', items: mkItems('z2', ['Tidy the shoes', 'Take out the bins', 'Hoover the hallway', 'Mop the hallway', 'Tidy the laundry room'], 'h') },
-      { id: 'z3', name: 'Living room', items: mkItems('z3', ['Hoover', 'Dust', 'Tidy the sofa', 'Clear cups and rubbish'], 'l') },
-      { id: 'z4', name: 'Dining room and terrace', items: mkItems('z4', ['Clean the dining table', 'Wipe the dining room windows', 'Sweep the terrace', 'Tidy the terrace'], 'd') }
-    ];
+  // The house as Michal laid it out on 28 Sep: hallway and laundry room, kitchen, dining room, living room,
+  // terrace, with the job lists he gave. Bins are a daily points job, so they are not on the hallway list.
+  var HOUSE = {
+    z1: ['Kitchen', ['Clean the oven', 'Clean the countertops', 'Wipe the outside of the drawers', 'Clean the bin area',
+      'Organise the cleaning things', 'Hoover', 'Organise the spices', 'Clean the cooker top'], 'k'],
+    z2: ['Hallway and laundry room', ['Tidy the shoes', 'Hoover and mop', 'Organise the laundry room'], 'm'],
+    z3: ['Living room', ['Clean the table', 'Clean the desk', 'Clean the TV stand', 'Hoover', 'Dust', 'Tidy the sofa', 'Wipe the windowsills'], 'v'],
+    z4: ['Dining room and terrace', ['Clean the dining table', 'Wipe the dining room windows', 'Wipe the windowsills', 'Sweep the terrace', 'Tidy the terrace'], 'w']
+  };
+  function houseZones() {
+    return ['z1', 'z2', 'z3', 'z4'].map(function (zid) { return { id: zid, name: HOUSE[zid][0], items: mkItems(zid, HOUSE[zid][1], HOUSE[zid][2]) }; });
+  }
+  // A new list that keeps the id of every job whose name stays, so ticks already made this week still count.
+  function mergeItems(old, names, zid, tag) {
+    var used = {}, n = 0;
+    return names.map(function (name) {
+      var m = old.filter(function (x) { return !used[x.id] && x.name.toLowerCase() === name.toLowerCase(); })[0];
+      if (m) { used[m.id] = true; return { id: m.id, name: name }; }
+      var id;
+      do { id = zid + tag + (++n); } while (old.some(function (x) { return x.id === id; }));
+      return { id: id, name: name };
+    });
   }
   function freshState(now) {
     return {
@@ -369,7 +382,7 @@ textarea.copy{min-height:280px;font-size:16px}
       jobs: [
         { id: 'j1', name: 'Empty the drying rack', pts: 1, lock: 60 },
         { id: 'j2', name: 'Empty the dishwasher', pts: 2, lock: 60 },
-        { id: 'j3', name: 'Change the bin', pts: 1, lock: 60 },
+        { id: 'j3', name: 'Take out the bins', pts: 1, lock: 60 },
         { id: 'j4', name: 'Fill the water filter', pts: 1, lock: 60 },
         { id: 'j5', name: 'Clear and wipe the counter', pts: 1, lock: 60 },
         { id: 'j6', name: 'Recycling or glass run', pts: 2, lock: 60 },
@@ -379,7 +392,7 @@ textarea.copy{min-height:280px;font-size:16px}
       // rot.zones[i] = who has zone i in the anchor week; everyone moves on one each Monday.
       // With more people than zones, whoever has no zone that week is captain.
       rot: { anchor: weekKey(now), zones: ['p2', 'p3', 'p4', 'p5'], captain: 'p1' },
-      layout: 2,
+      layout: 3,
       penalty: 1,          // minus for each zone task not ticked by Sunday night
       penMode: 'task',
       dishesPer: 2,        // someone else's dishes: this many for 1 point
@@ -524,27 +537,50 @@ textarea.copy{min-height:280px;font-size:16px}
       return name === OLD_ZONES[i][0] && items === OLD_ZONES[i][1];
     });
   }
-  // 28 Sep: the zones as Michal described the house, and Max moving in. Runs once per board.
-  // Zones someone already edited in settings are left alone. This week stays as it was.
+  // The job lists each zone had before Michal gave his own (28 Sep, round 3).
+  var ROUND3 = {
+    z1: 'hob|oven front|fridge clear-out|sink|mop the floor',
+    z2: 'tidy the shoes|take out the bins|hoover the hallway|mop the hallway|tidy the laundry room',
+    z3: 'hoover|dust|tidy the sofa|clear cups and rubbish',
+    z4: 'clean the dining table|wipe the dining room windows|sweep the terrace|tidy the terrace'
+  };
+  // One-off upgrades, each run once per board. Anything someone already changed in settings is left alone,
+  // and this week stays as it was.
   function migrateLayout(now) {
-    if ((S.layout || 1) >= 2) return false;
-    ensureWeeks(now);
-    var wk = weekKey(now), changed = false;
-    if (zonesUntouched(S.zones)) {
-      S.zones = houseZones(S.zones[0]);
-      ['z2', 'z3', 'z4'].forEach(function (zid) {
-        if (S.ticks[wk]) delete S.ticks[wk][zid];
-        if (S.itemTicks[wk]) delete S.itemTicks[wk][zid];
+    var did = false, wk = weekKey(now);
+    if ((S.layout || 1) < 2) {
+      // 28 Sep: the zones as Michal described the house, and Max moving in.
+      ensureWeeks(now);
+      var changed = false;
+      if (zonesUntouched(S.zones)) {
+        var z = houseZones();
+        z[0] = S.zones[0];   // the kitchen keeps its ticks; its list is brought up to date below
+        S.zones = z;
+        ['z2', 'z3', 'z4'].forEach(function (zid) {
+          if (S.ticks[wk]) delete S.ticks[wk][zid];
+          if (S.itemTicks[wk]) delete S.itemTicks[wk][zid];
+        });
+        changed = true;
+      }
+      if (!S.people.some(function (p) { return p.name.trim().toLowerCase() === 'max'; }) && activePeople().length < MAX_PEOPLE) {
+        S.people.push({ id: nextPersonId(), name: 'Max' });
+        changed = true;
+      }
+      if (changed) reanchor(wk);
+      S.layout = 2; did = true;
+    }
+    if (S.layout < 3) {
+      // 28 Sep: Michal's own job list for each zone. Bins became a daily points job.
+      S.zones.forEach(function (z) {
+        var was = ROUND3[z.id], now3 = HOUSE[z.id];
+        if (!was || !now3) return;
+        if (z.items.map(function (x) { return x.name.trim().toLowerCase(); }).join('|') !== was) return;
+        z.items = mergeItems(z.items, now3[1], z.id, 'r');
       });
-      changed = true;
+      S.jobs.forEach(function (j) { if (j.name === 'Change the bin') j.name = 'Take out the bins'; });
+      S.layout = 3; did = true;
     }
-    if (!S.people.some(function (p) { return p.name.trim().toLowerCase() === 'max'; }) && activePeople().length < MAX_PEOPLE) {
-      S.people.push({ id: nextPersonId(), name: 'Max' });
-      changed = true;
-    }
-    if (changed) reanchor(wk);
-    S.layout = 2;
-    return true;
+    return did;
   }
   // Freeze each week's rota the first time it is seen, so changing the rota later never rewrites history.
   function ensureWeeks(now) {
