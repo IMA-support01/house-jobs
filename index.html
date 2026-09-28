@@ -350,10 +350,11 @@ textarea.copy{min-height:280px;font-size:16px}
   // terrace, with the job lists he gave. Bins are a daily points job, so they are not on the hallway list.
   var HOUSE = {
     z1: ['Kitchen', ['Clean the oven', 'Clean the countertops', 'Wipe the outside of the drawers', 'Clean the bin area',
-      'Organise the cleaning things', 'Hoover', 'Organise the spices', 'Clean the cooker top'], 'k'],
+      'Organise the cleaning things', 'Hoover', 'Mop the floor', 'Organise the spices', 'Clean the cooker top'], 'k'],
     z2: ['Hallway and laundry room', ['Tidy the shoes', 'Hoover and mop', 'Organise the laundry room'], 'm'],
     z3: ['Living room', ['Clean the table', 'Clean the desk', 'Clean the TV stand', 'Hoover', 'Dust', 'Tidy the sofa', 'Wipe the windowsills'], 'v'],
-    z4: ['Dining room and terrace', ['Clean the dining table', 'Wipe the dining room windows', 'Wipe the windowsills', 'Sweep the terrace', 'Tidy the terrace'], 'w']
+    z4: ['Dining room and terrace', ['Clean the dining table', 'Wipe the dining room windows', 'Wipe the windowsills', 'Hoover and mop the floor',
+      'Sweep the terrace', 'Tidy the terrace'], 'w']
   };
   function houseZones() {
     return ['z1', 'z2', 'z3', 'z4'].map(function (zid) { return { id: zid, name: HOUSE[zid][0], items: mkItems(zid, HOUSE[zid][1], HOUSE[zid][2]) }; });
@@ -385,15 +386,13 @@ textarea.copy{min-height:280px;font-size:16px}
         { id: 'j3', name: 'Change the bin', pts: 1, lock: 60 },
         { id: 'j8', name: 'Take the bin bag down', pts: 1, lock: 60 },
         { id: 'j4', name: 'Fill the water filter', pts: 1, lock: 60 },
-        { id: 'j5', name: 'Clear and wipe the counter', pts: 1, lock: 60 },
-        { id: 'j6', name: 'Recycling or glass run', pts: 2, lock: 60 },
-        { id: 'j7', name: 'Hoover the kitchen or hall', pts: 1, lock: 60 }
+        { id: 'j6', name: 'Recycling or glass run', pts: 2, lock: 60 }
       ],
       zones: houseZones(),
       // rot.zones[i] = who has zone i in the anchor week; everyone moves on one each Monday.
       // With more people than zones, whoever has no zone that week is captain.
       rot: { anchor: weekKey(now), zones: ['p2', 'p3', 'p4', 'p5'], captain: 'p1' },
-      layout: 4,
+      layout: 5,
       penalty: 1,          // minus for each zone task not ticked by Sunday night
       penMode: 'task',
       dishesPer: 2,        // someone else's dishes: this many for 1 point
@@ -591,8 +590,29 @@ textarea.copy{min-height:280px;font-size:16px}
       }
       S.layout = 4; did = true;
     }
+    if (S.layout < 5) {
+      // 28 Sep: wiping the counter and hoovering belong to the zones, not the daily points jobs (Michal).
+      // Every zone lists its own floor, so the kitchen gets its mop and the dining room its floor.
+      S.jobs = S.jobs.filter(function (j) { return j.name !== 'Clear and wipe the counter' && j.name !== 'Hoover the kitchen or hall'; });
+      addToUntouched('z1', ROUND4.z1, 'Mop the floor', 'Hoover');
+      addToUntouched('z4', ROUND4.z4, 'Hoover and mop the floor', 'Wipe the windowsills');
+      S.layout = 5; did = true;
+    }
     return did;
   }
+  // The lists as round 4 left them. Only a list nobody has changed since gets the new job.
+  var ROUND4 = {
+    z1: 'clean the oven|clean the countertops|wipe the outside of the drawers|clean the bin area|organise the cleaning things|hoover|organise the spices|clean the cooker top',
+    z4: 'clean the dining table|wipe the dining room windows|wipe the windowsills|sweep the terrace|tidy the terrace'
+  };
+  function addToUntouched(zid, was, name, after) {
+    var z = findZone(zid);
+    if (!z || z.items.map(function (x) { return x.name.trim().toLowerCase(); }).join('|') !== was) return;
+    var names = z.items.map(function (x) { return x.name; }), at = names.indexOf(after);
+    names.splice(at >= 0 ? at + 1 : names.length, 0, name);
+    z.items = mergeItems(z.items, names, zid, 's');
+  }
+  function findZone(id) { for (var i = 0; i < S.zones.length; i++) if (S.zones[i].id === id) return S.zones[i]; return null; }
   // Freeze each week's rota the first time it is seen, so changing the rota later never rewrites history.
   function ensureWeeks(now) {
     var cur = weekKey(now), wk = firstWeek(), changed = false, guard = 0;
