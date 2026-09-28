@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>House Jobs</title>
+<meta name="description" content="The kitchen board: small jobs for points, weekly zones and who is captain.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#f4f3ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="House Jobs">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<script src="qrcode.min.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  color-scheme:light;
+  --bg:#f4f3ef;--card:#ffffff;--fill:#f0efec;--fill-2:#e4e2dc;--line:#e0ded7;
+  --ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a65;
+  --good:#0a7a0a;--good-bg:#e8f3e6;
+  --bad:#b42318;--bad-bg:#fbeae8;
+  --btn:#1c1b19;--btn-ink:#ffffff;--btn-2:#ffffff;
+  --focus:#1c5cab;--scrim:rgba(18,18,17,.45);
+  --p1:#2a78d6;--p1-ink:#ffffff;
+  --p2:#eda100;--p2-ink:#0b0b0b;
+  --p3:#e87ba4;--p3-ink:#0b0b0b;
+  --p4:#008300;--p4-ink:#ffffff;
+  --shadow:0 1px 2px rgba(24,22,16,.06),0 2px 6px rgba(24,22,16,.04);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    color-scheme:dark;
+    --bg:#121211;--card:#1a1a19;--fill:#242422;--fill-2:#302f2c;--line:#34332f;
+    --ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#a3a298;
+    --good:#5ccb5c;--good-bg:#17301a;
+    --bad:#f28b82;--bad-bg:#3b1d1a;
+    --btn:#f4f3ef;--btn-ink:#121211;--btn-2:#242422;
+    --focus:#86b6ef;--scrim:rgba(0,0,0,.6);
+    --p1:#3987e5;--p1-ink:#0b0b0b;
+    --p2:#c98500;--p2-ink:#0b0b0b;
+    --p3:#d55181;--p3-ink:#0b0b0b;
+    --p4:#008300;--p4-ink:#ffffff;
+    --shadow:none;
+  }
+}
+html{-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:18px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+body.modal-open{overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button,.btn{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.app{max-width:1500px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-right)) 28px max(16px,env(safe-area-inset-left))}
+
+/* header */
+.top{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.grow{flex:1;min-width:0}
+.top h1{margin:0;font-size:28px;line-height:1.15;font-weight:700;letter-spacing:-.01em}
+.top .sub{margin:2px 0 0;color:var(--ink-2);font-size:17px}
+.clock{font-size:40px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
+.icon-btn{width:56px;height:56px;border-radius:14px;border:1px solid var(--line);background:var(--card);display:inline-flex;align-items:center;justify-content:center;color:var(--ink-2);flex:none}
+.warn{margin:0 0 14px;padding:12px 16px;border-radius:12px;background:var(--bad-bg);color:var(--bad);font-weight:600}
+
+/* layout: jobs across the top, then zones beside points and today (tablet landscape),
+   or zones, then points beside today (tablet portrait), or one column (phone) */
+.board{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);align-items:start}
+.side{display:grid;gap:16px;align-content:start;align-items:start;min-width:0}
+@media (min-width:760px){
+  .side{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
+@media (min-width:1000px){
+  .board{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+  .jobs{grid-column:1/-1}
+  .side{grid-template-columns:minmax(0,1fr)}
+}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);min-width:0}
+.card-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 14px;margin-bottom:14px}
+.card h2{margin:0;font-size:22px;line-height:1.2;font-weight:700}
+.hint{margin:0;color:var(--ink-2);font-size:16px}
+
+/* jobs */
+.job-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (min-width:760px){.job-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1000px){.job-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:359px){.job-grid{grid-template-columns:minmax(0,1fr)}}
+.job{display:flex;flex-direction:column;justify-content:space-between;gap:10px;min-height:116px;padding:16px;border-radius:14px;border:1.5px solid transparent;background:var(--fill);text-align:left}
+.job:active{background:var(--fill-2)}
+.job .head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.job .name{font-size:22px;font-weight:650;line-height:1.2;min-width:0;overflow-wrap:break-word}
+.job .status{display:flex;align-items:center;gap:6px;font-size:16px;color:var(--ink-2);min-height:22px;line-height:1.3}
+.job .status svg{flex:none}
+.job.locked{background:transparent;border-style:dashed;border-color:var(--fill-2)}
+.job.locked .name{color:var(--ink-2)}
+.pts{display:inline-block;min-width:48px;text-align:center;padding:3px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-weight:700;font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums;flex:none}
+@media (max-width:759px){.job{min-height:104px;padding:14px}.job .name{font-size:19px}.job .head{flex-direction:column;align-items:flex-start;gap:6px}}
+.rules{margin:16px 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:16px;line-height:1.5;color:var(--ink-2)}
+.rules b{color:var(--ink)}
+
+/* people */
+.av{width:48px;height:48px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;line-height:1;flex:none;background:var(--pc);color:var(--pc-ink)}
+.av.sm{width:44px;height:44px;font-size:20px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--pc);flex:none;display:inline-block}
+.who-1{--pc:var(--p1);--pc-ink:var(--p1-ink)}
+.who-2{--pc:var(--p2);--pc-ink:var(--p2-ink)}
+.who-3{--pc:var(--p3);--pc-ink:var(--p3-ink)}
+.who-4{--pc:var(--p4);--pc-ink:var(--p4-ink)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 18px;border-radius:12px;border:1.5px solid var(--ink-3);background:var(--btn-2);font-weight:650;font-size:17px;white-space:nowrap;text-decoration:none;color:var(--ink)}
+.btn.primary{background:var(--btn);color:var(--btn-ink);border-color:var(--btn)}
+.btn.sm{min-height:48px;padding:0 15px}
+.btn.quiet{border-color:transparent;background:transparent;color:var(--ink-2);min-height:44px;padding:0 10px;text-decoration:underline;text-underline-offset:3px}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* zones */
+.zone-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.zone{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"av head act" "av tasks tasks";align-items:center;column-gap:14px;row-gap:6px;padding:14px;border-radius:14px;background:var(--fill)}
+.zone.done{background:var(--good-bg)}
+.zone > .av{grid-area:av;align-self:start}
+.zhead{grid-area:head;min-width:0}
+.zact{grid-area:act}
+.zname{font-weight:650;font-size:20px;line-height:1.25}
+.zwho{font-size:17px}
+.ztasks{grid-area:tasks;font-size:16px;color:var(--ink-2);line-height:1.35}
+.state-done{display:flex;align-items:center;gap:8px;color:var(--good);font-weight:650;white-space:nowrap;font-size:18px}
+.state-done small{display:block;color:var(--ink-2);font-weight:400;font-size:15px}
+.late{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px 12px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--bad-bg);margin-bottom:10px}
+.late p{margin:0;font-size:17px;display:flex;gap:10px;align-items:flex-start;flex:1 1 220px}
+.late svg{flex:none;color:var(--bad);margin-top:2px}
+.captain{display:flex;align-items:center;gap:14px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.captain .label{font-size:15px;color:var(--ink-2)}
+.captain .cname{font-weight:650;font-size:20px}
+.captain .nudge{font-size:16px;font-weight:600;margin-top:2px}
+
+/* points */
+.ptable{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.ptable th{font-size:15px;font-weight:600;color:var(--ink-2);text-align:right;padding:0 0 8px 12px;white-space:nowrap}
+.ptable th:first-child{text-align:left;padding-left:0}
+.ptable td{padding:6px 0 6px 12px;vertical-align:middle;text-align:right;font-size:24px;font-weight:700}
+.ptable td.person{text-align:left;padding-left:0;font-weight:600;font-size:19px;white-space:nowrap}
+.person-cell{display:flex;align-items:center;gap:12px}
+.bar-cell{width:36%}
+.track{height:14px;background:var(--fill);border-radius:0 4px 4px 0;overflow:hidden}
+.bar{height:100%;background:var(--pc);border-radius:0 4px 4px 0}
+.neg{color:var(--bad)}
+.note{margin:12px 0 0;font-size:17px;color:var(--ink-2)}
+.note b{color:var(--ink)}
+
+/* today + log */
+.feed{list-style:none;margin:0;padding:0}
+.feed li{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:17px;min-height:50px}
+.feed li:first-child{border-top:0}
+.feed time{color:var(--ink-3);font-variant-numeric:tabular-nums;font-size:16px;width:50px;flex:none}
+.feed .what{flex:1;min-width:0}
+.feed .what b{font-weight:650}
+.feed .what span{color:var(--ink-2)}
+.feed .gain{font-weight:700;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center}
+.feed .gain.ok{color:var(--good)}
+.empty,.more{color:var(--ink-2);margin:0;font-size:17px}
+.more{margin-top:6px}
+.day-h{margin:18px 0 4px;font-size:16px;color:var(--ink-2);font-weight:650}
+
+/* dialogs */
+.scrim{position:fixed;top:0;right:0;bottom:0;left:0;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.dialog{background:var(--card);color:var(--ink);border-radius:20px;max-width:640px;width:100%;max-height:calc(100vh - 32px);overflow:auto;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,.25);-webkit-overflow-scrolling:touch}
+.dialog.wide{max-width:900px}
+.dialog:focus{outline:none}
+.dialog h2{margin:0 0 4px;font-size:26px;line-height:1.2}
+.dialog .lead{margin:0 0 18px;color:var(--ink-2);font-size:17px}
+.pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pick{display:flex;align-items:center;gap:16px;min-height:104px;padding:16px 18px;border-radius:16px;border:1.5px solid var(--line);background:var(--fill);font-size:26px;font-weight:650;text-align:left}
+.pick:active{background:var(--fill-2)}
+.pick .av{width:60px;height:60px;font-size:28px}
+.actions{display:flex;justify-content:flex-end;gap:12px;margin-top:20px;flex-wrap:wrap}
+.sticky-actions{position:sticky;bottom:-24px;background:var(--card);padding:14px 0 24px;margin-bottom:-24px;border-top:1px solid var(--line)}
+
+/* week sum-up */
+.sum-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px 16px}
+.sum-head .lead{margin-bottom:0}
+.sum-top{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.stat{background:var(--fill);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px}
+.stat .k{font-size:15px;color:var(--ink-2)}
+.stat .v{font-size:21px;font-weight:700;line-height:1.25}
+.sum-sec{border-top:1px solid var(--line);margin-top:18px;padding-top:16px}
+.sum-sec h3{margin:0 0 12px;font-size:19px}
+.sum-zones{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.sum-zones li{display:flex;align-items:center;gap:12px;font-size:17px;flex-wrap:wrap}
+.sum-zones .muted{color:var(--ink-2)}
+.zstate{margin-left:auto;font-weight:650;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.zstate.ok{color:var(--good)}
+.zstate.bad{color:var(--bad)}
+.zstate.wait{color:var(--ink-2)}
+.sum-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.sum-table th{font-size:15px;font-weight:600;color:var(--ink-2);text-align:right;padding:0 0 8px 12px;white-space:nowrap}
+.sum-table th:first-child{text-align:left;padding-left:0}
+.sum-table td{padding:8px 0 8px 12px;text-align:right;font-size:19px;border-top:1px solid var(--line)}
+.sum-table td:first-child{text-align:left;padding-left:0;font-weight:600}
+.sum-table td.total{font-weight:700;font-size:22px}
+.did{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.did li{font-size:17px;line-height:1.45}
+.did li span{color:var(--ink-2)}
+.sum-month{margin:0;font-size:18px}
+.wa-row{display:flex;flex-wrap:wrap;gap:16px 22px;align-items:center}
+.qr{background:#ffffff;padding:14px;border-radius:14px;width:340px;height:340px;flex:none;border:1px solid var(--line)}
+.qr svg{display:block;width:100%;height:100%}
+.wa-text{flex:1 1 260px}
+.wa-text p{margin:0 0 14px;font-size:17px}
+
+/* settings */
+.form-sec{border-top:1px solid var(--line);padding-top:16px;margin-top:18px}
+.form-sec:first-of-type{border-top:0;margin-top:0;padding-top:0}
+.form-sec h3{margin:0 0 4px;font-size:19px}
+.form-sec .help{margin:0 0 12px;color:var(--ink-2);font-size:16px}
+.field{display:grid;gap:4px;margin-bottom:10px;min-width:0}
+.field .lbl{font-size:15px;color:var(--ink-2);font-weight:600}
+input[type=text],input[type=password],select,textarea{min-height:50px;padding:8px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);width:100%}
+textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.row{display:grid;gap:0 10px;align-items:end}
+.job-row{grid-template-columns:minmax(0,1fr) 96px 130px auto}
+.job-row .btn.quiet{margin-bottom:12px}
+.job-row + .job-row .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.zone-row{grid-template-columns:minmax(0,220px) minmax(0,1fr)}
+.check{display:flex;align-items:center;gap:12px;min-height:50px;font-weight:600}
+.check input{width:24px;height:24px}
+.error{color:var(--bad);font-weight:600;margin:10px 0 0}
+@media (max-width:620px){
+  .job-row{grid-template-columns:1fr 1fr}
+  .job-row .field:first-child{grid-column:1/-1}
+  .zone-row,.grid-2,.sum-top{grid-template-columns:1fr}
+  .pick{font-size:22px;min-height:84px}
+  .pick .av{width:52px;height:52px;font-size:24px}
+  .clock{font-size:30px}
+  .qr{width:240px;height:240px}
+}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--btn);color:var(--btn-ink);border-radius:14px;padding:12px 14px 12px 20px;display:flex;align-items:center;gap:14px;font-size:18px;width:max-content;max-width:calc(100% - 32px);transition:opacity .18s,transform .18s;z-index:60;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{background:transparent;border:1.5px solid currentColor;color:inherit;border-radius:10px;min-height:44px;padding:0 14px;font-weight:650;flex:none}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+<div id="modal-root"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<noscript><p style="padding:16px">This board needs JavaScript switched on.</p></noscript>
+<script>
+(function () {
+  'use strict';
+
+  var KEY = 'houseJobs.v1';
+  var UNDO_MS = 2 * 60 * 1000;     // how long a tap can be taken back from the board
+  var GRACE_HOUR = 10;             // last week's zones can still be ticked until Monday 10:00
+  var PIN_OPEN_MS = 5 * 60 * 1000; // PIN stays open this long after it is typed
+  var KEEP_DAYS = 400;
+
+  /* ---------- dates, all in the tablet's local time ---------- */
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function dayKey(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function fromKey(k) { var p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function addDays(d, n) { var x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() + n); return x; }
+  function mondayOf(d) { var x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+  function weekKey(d) { return dayKey(mondayOf(d)); }
+  function nextWeek(wk) { return dayKey(addDays(fromKey(wk), 7)); }
+  function prevWeek(wk) { return dayKey(addDays(fromKey(wk), -7)); }
+  function weeksBetween(a, b) { return Math.round((fromKey(b) - fromKey(a)) / 6048e5); }
+  function weekEnd(wk) { return addDays(fromKey(wk), 7); }
+  function lastChance(wk) { var e = weekEnd(wk); e.setHours(GRACE_HOUR, 0, 0, 0); return e; }
+  function monthStart(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+  function addMonths(d, n) { return new Date(d.getFullYear(), d.getMonth() + n, 1); }
+  function mod(a, n) { return ((a % n) + n) % n; }
+  function hhmm(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+
+  var fmtLong = new Intl.DateTimeFormat('en-IE', { weekday: 'long', day: 'numeric', month: 'long' });
+  var fmtShort = new Intl.DateTimeFormat('en-IE', { weekday: 'short', day: 'numeric', month: 'short' });
+  var fmtDM = new Intl.DateTimeFormat('en-IE', { day: 'numeric', month: 'long' });
+  var fmtDMShort = new Intl.DateTimeFormat('en-IE', { day: 'numeric', month: 'short' });
+  var fmtMonth = new Intl.DateTimeFormat('en-IE', { month: 'long' });
+  var fmtWeekday = new Intl.DateTimeFormat('en-IE', { weekday: 'short' });
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+  function fmtPts(n) { return n < 0 ? '-' + Math.abs(n) : String(n); }
+
+  /* ---------- state ---------- */
+  function freshState(now) {
+    return {
+      v: 1,
+      people: [
+        { id: 'p1', name: 'Michal' },
+        { id: 'p2', name: 'Ciaran' },
+        { id: 'p3', name: 'Brodie' },
+        { id: 'p4', name: 'Eoin' }
+      ],
+      jobs: [
+        { id: 'j1', name: 'Empty the drying rack', pts: 1, lock: 60 },
+        { id: 'j2', name: 'Empty the dishwasher', pts: 2, lock: 60 },
+        { id: 'j3', name: 'Change the bin', pts: 1, lock: 60 },
+        { id: 'j4', name: 'Fill the water filter', pts: 1, lock: 60 },
+        { id: 'j5', name: 'Clear and wipe the counter', pts: 1, lock: 60 },
+        { id: 'j6', name: 'Recycling or glass run', pts: 2, lock: 60 },
+        { id: 'j7', name: 'Hoover the kitchen or hall', pts: 1, lock: 60 }
+      ],
+      zones: [
+        { id: 'z1', name: 'Kitchen', tasks: 'Hob, oven front, fridge clear-out, sink, mop the floor' },
+        { id: 'z2', name: 'Bathrooms', tasks: 'Toilets, showers, sinks, mirrors, mop the floors' },
+        { id: 'z3', name: 'Living room and hall', tasks: 'Hoover, stairs, dust, tidy the sofa' },
+        { id: 'z4', name: 'Bins, laundry, outside', tasks: 'Wheelie bins out and back, laundry room, front door' }
+      ],
+      // rot.zones[i] = index of the person who has zone i in the anchor week; everyone moves on one each Monday
+      rot: { anchor: weekKey(now), zones: [1, 2, 3, 0], captain: 0 },
+      penalty: 5,
+      start: dayKey(now),
+      entries: [],   // { id, kind:'job', job, jobName, pts, who, at }
+      ticks: {},     // ticks[week][zoneId] = { who, at, late }
+      excused: {},   // excused[week][zoneId] = at   (a minus that was removed)
+      weeks: {},     // weeks[week] = { zones:{zoneId:personId}, captain, pen }  frozen once seen
+      pin: null,
+      keepAwake: false,
+      lastBackup: null
+    };
+  }
+  function valid(s) {
+    return !!(s && s.v === 1 && Array.isArray(s.people) && s.people.length === 4 && Array.isArray(s.jobs) &&
+      Array.isArray(s.zones) && s.zones.length === 4 && s.rot && Array.isArray(s.rot.zones) && Array.isArray(s.entries) &&
+      typeof s.start === 'string');
+  }
+  function upgrade(s) {
+    s.ticks = s.ticks || {}; s.excused = s.excused || {}; s.weeks = s.weeks || {};
+    if (typeof s.penalty !== 'number') s.penalty = 5;
+    return s;
+  }
+
+  var storageOK = true;
+  function load(now) {
+    var raw = null;
+    try { raw = window.localStorage.getItem(KEY); } catch (e) { storageOK = false; }
+    if (raw) {
+      try { var s = JSON.parse(raw); if (valid(s)) return upgrade(s); } catch (e) { /* fall through */ }
+      try { window.localStorage.setItem(KEY + '.unreadable.' + Date.now(), raw); } catch (e) { /* keep going */ }
+    }
+    return freshState(now);
+  }
+  function save() {
+    try { window.localStorage.setItem(KEY, JSON.stringify(S)); storageOK = true; }
+    catch (e) { storageOK = false; }
+  }
+
+  var S = load(new Date());
+
+  function person(id) { for (var i = 0; i < S.people.length; i++) if (S.people[i].id === id) return S.people[i]; return { id: id, name: '?' }; }
+  function pIndex(id) { for (var i = 0; i < S.people.length; i++) if (S.people[i].id === id) return i; return 0; }
+  function jobById(id) { for (var i = 0; i < S.jobs.length; i++) if (S.jobs[i].id === id) return S.jobs[i]; return null; }
+  function zoneById(id) { for (var i = 0; i < S.zones.length; i++) if (S.zones[i].id === id) return S.zones[i]; return { id: id, name: 'Zone' }; }
+  function entryById(id) { for (var i = 0; i < S.entries.length; i++) if (S.entries[i].id === id) return S.entries[i]; return null; }
+  function lastFor(jobId) {
+    for (var i = S.entries.length - 1; i >= 0; i--) { var e = S.entries[i]; if (e.kind === 'job' && e.job === jobId) return e; }
+    return null;
+  }
+  function av(id, cls) {
+    return '<span class="av who-' + (pIndex(id) + 1) + (cls ? ' ' + cls : '') + '" aria-hidden="true">' +
+      esc(person(id).name.charAt(0).toUpperCase()) + '</span>';
+  }
+  function dot(id) { return '<span class="dot who-' + (pIndex(id) + 1) + '" aria-hidden="true"></span>'; }
+  function namesList(ps) {
+    var n = ps.map(function (p) { return p.name; });
+    return n.length <= 1 ? n.join('') : n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1];
+  }
+
+  /* ---------- weeks, zones and the rota ---------- */
+  function firstWeek() { return weekKey(fromKey(S.start)); }
+  function computeWeek(wk) {
+    var k = weeksBetween(S.rot.anchor, wk), n = S.people.length, z = {};
+    S.zones.forEach(function (zone, i) { z[zone.id] = S.people[mod(S.rot.zones[i] + k, n)].id; });
+    return { zones: z, captain: S.people[mod(S.rot.captain + k, n)].id, pen: S.penalty };
+  }
+  // Freeze each week's rota the first time it is seen, so changing the rota later never rewrites history.
+  function ensureWeeks(now) {
+    var cur = weekKey(now), wk = firstWeek(), changed = false, guard = 0;
+    while (wk <= cur && guard++ < 600) {
+      if (!S.weeks[wk]) { S.weeks[wk] = computeWeek(wk); changed = true; }
+      wk = nextWeek(wk);
+    }
+    return changed;
+  }
+  function week(wk) { return S.weeks[wk] || computeWeek(wk); }
+  function isTicked(wk, zid) { return !!((S.ticks[wk] || {})[zid]); }
+  function isExcused(wk, zid) { return !!((S.excused[wk] || {})[zid]); }
+
+  // A zone not ticked by Sunday night (with a last chance until Monday 10:00) costs its owner the penalty.
+  function misses(now) {
+    var out = [], first = firstWeek();
+    Object.keys(S.weeks).forEach(function (wk) {
+      if (wk < first || now < lastChance(wk)) return;
+      var w = S.weeks[wk];
+      S.zones.forEach(function (zone) {
+        if (isTicked(wk, zone.id) || isExcused(wk, zone.id)) return;
+        var who = w.zones[zone.id];
+        if (!who || !w.pen) return;
+        out.push({ id: 'miss|' + wk + '|' + zone.id, kind: 'miss', wk: wk, zone: zone.id, who: who, pts: -w.pen,
+          at: new Date(weekEnd(wk).getTime() - 60000).toISOString() });
+      });
+    });
+    return out;
+  }
+  function scored(now) { return S.entries.concat(misses(now)); }
+  function sumBetween(items, from, to) {
+    var t = {};
+    S.people.forEach(function (p) { t[p.id] = 0; });
+    items.forEach(function (e) {
+      var at = new Date(e.at);
+      if (at >= from && at < to && Object.prototype.hasOwnProperty.call(t, e.who)) t[e.who] += e.pts;
+    });
+    return t;
+  }
+  // The first month only counts if the board started in its first week; otherwise it is a trial run.
+  function countingFrom() { var st = fromKey(S.start); return st.getDate() <= 7 ? monthStart(st) : addMonths(st, 1); }
+  function bottomOf(t) {
+    var min = Infinity;
+    S.people.forEach(function (p) { if (t[p.id] < min) min = t[p.id]; });
+    return S.people.filter(function (p) { return t[p.id] === min; });
+  }
+  function byPoints(t, t2) {
+    return S.people.slice().sort(function (a, b) {
+      return (t[b.id] - t[a.id]) || (t2 ? t2[b.id] - t2[a.id] : 0) || (pIndex(a.id) - pIndex(b.id));
+    });
+  }
+  function prune(now) {
+    var cut = addDays(now, -KEEP_DAYS).toISOString(), before = S.entries.length;
+    S.entries = S.entries.filter(function (e) { return e.at >= cut; });
+    return S.entries.length !== before;
+  }
+
+  /* ---------- one week, added up ---------- */
+  function weekData(wk, now) {
+    var ws = fromKey(wk), we = weekEnd(wk), lc = lastChance(wk), w = week(wk), rows = {};
+    S.people.forEach(function (p) { rows[p.id] = { p: p, jobs: 0, jobPts: 0, minus: 0, by: {} }; });
+    S.entries.forEach(function (e) {
+      var at = new Date(e.at);
+      if (e.kind !== 'job' || at < ws || at >= we || !rows[e.who]) return;
+      var r = rows[e.who];
+      r.jobs += 1; r.jobPts += e.pts; r.by[e.jobName] = (r.by[e.jobName] || 0) + 1;
+    });
+    var zones = S.zones.map(function (z) {
+      var t = (S.ticks[wk] || {})[z.id], who = w.zones[z.id], state;
+      if (t) state = t.late ? 'late' : 'done';
+      else if (isExcused(wk, z.id)) state = 'excused';
+      else if (now < we) state = 'open';
+      else if (now < lc) state = 'grace';
+      else state = 'missed';
+      if (state === 'missed' && w.pen && rows[who]) rows[who].minus += w.pen;
+      return { z: z, who: who, state: state, t: t };
+    });
+    var list = S.people.map(function (p) { var r = rows[p.id]; r.total = r.jobPts - r.minus; return r; })
+      .sort(function (a, b) { return (b.total - a.total) || (b.jobs - a.jobs) || (pIndex(a.p.id) - pIndex(b.p.id)); });
+    return { wk: wk, ws: ws, captain: w.captain, pen: w.pen, zones: zones, list: list, current: wk === weekKey(now) };
+  }
+  function monthLine(now) {
+    var mt = sumBetween(scored(now), monthStart(now), addMonths(now, 1)), cf = countingFrom(), bot = bottomOf(mt);
+    return {
+      totals: mt,
+      note: now < cf ? 'Trial run. Points count for real from ' + fmtDM.format(cf) + '.'
+        : bot.length === S.people.length ? 'Everyone is level.' : 'Bottom right now: ' + namesList(bot) + '.',
+      bottom: now < cf || bot.length === S.people.length ? [] : bot
+    };
+  }
+  // The text that goes to the WhatsApp group.
+  function sumText(wk, now) {
+    var d = weekData(wk, now), L = [];
+    L.push('House jobs, week of ' + fmtDMShort.format(d.ws) + (d.current ? ' (so far)' : ''));
+    L.push('Captain: ' + person(d.captain).name, '', 'Zones');
+    d.zones.forEach(function (x) {
+      var n = person(x.who).name;
+      if (x.state === 'done' || x.state === 'late') L.push('✅ ' + x.z.name + ': ' + n);
+      else if (x.state === 'missed') L.push('❌ ' + x.z.name + ': ' + n + ' (missed' + (d.pen ? ', minus ' + d.pen : '') + ')');
+      else if (x.state === 'excused') L.push('⬜ ' + x.z.name + ': ' + n + ' (let off)');
+      else L.push('⬜ ' + x.z.name + ': ' + n + ' (not done yet)');
+    });
+    L.push('', 'Points');
+    d.list.forEach(function (r) {
+      var extra = [];
+      if (r.jobs) extra.push(plural(r.jobs, 'job', 'jobs'));
+      if (r.minus) extra.push('minus ' + r.minus);
+      L.push(r.p.name + ' ' + fmtPts(r.total) + (extra.length ? ' (' + extra.join(', ') + ')' : ''));
+    });
+    var m = monthLine(now);
+    L.push('', fmtMonth.format(now) + ' so far: ' + byPoints(m.totals).map(function (p) { return p.name + ' ' + fmtPts(m.totals[p.id]); }).join(', '));
+    L.push(m.note);
+    return L.join('\n');
+  }
+  function waLink(text) { return 'https://wa.me/?text=' + encodeURIComponent(text); }
+
+  /* ---------- icons ---------- */
+  var I = {
+    gear: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+    check: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
+    lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+    list: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>',
+    alert: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>'
+  };
+
+  /* ---------- the board ---------- */
+  var app = document.getElementById('app');
+  var lastMinute = '';
+
+  function render() {
+    var now = new Date();
+    var changed = ensureWeeks(now);
+    if (prune(now)) changed = true;
+    if (changed) save();
+    var wk = weekKey(now), items = scored(now);
+    app.innerHTML =
+      renderTop(now) +
+      (storageOK ? '' : '<p class="warn">This browser is not saving. Points will be lost when the page closes.</p>') +
+      '<div class="board">' + renderJobs(now) + renderZones(now, wk) +
+      '<div class="side">' + renderPoints(now, wk, items) + renderToday(now) + '</div></div>';
+    lastMinute = hhmm(now);
+  }
+
+  function renderTop(now) {
+    return '<header class="top"><div class="grow"><h1>House jobs</h1><p class="sub">' + esc(fmtLong.format(now)) + '</p></div>' +
+      '<div class="clock" aria-hidden="true">' + hhmm(now) + '</div>' +
+      '<button class="icon-btn" type="button" data-act="settings" aria-label="Settings">' + I.gear + '</button></header>';
+  }
+
+  function renderJobs(now) {
+    var tiles = S.jobs.map(function (j) {
+      var last = lastFor(j.id), locked = false, until = null, foot = '';
+      if (last) {
+        var at = new Date(last.at);
+        until = new Date(at.getTime() + j.lock * 60000);
+        if (now < until) {
+          locked = true;
+          foot = I.lock + '<span>' + esc(person(last.who).name) + ' did it, opens ' + hhmm(until) + '</span>';
+        } else if (dayKey(at) === dayKey(now)) {
+          foot = '<span>Last: ' + esc(person(last.who).name) + ', ' + hhmm(at) + '</span>';
+        }
+      }
+      var label = j.name + ', ' + plural(j.pts, 'point', 'points') + (locked ? '. Done already, opens again at ' + hhmm(until) : '');
+      return '<button type="button" class="job' + (locked ? ' locked' : '') + '" data-act="job" data-id="' + esc(j.id) + '" aria-label="' + esc(label) + '">' +
+        '<span class="head"><span class="name">' + esc(j.name) + '</span><span class="pts">+' + j.pts + '</span></span>' +
+        '<span class="status">' + foot + '</span></button>';
+    }).join('');
+    return '<section class="card jobs" aria-labelledby="h-jobs"><div class="card-head"><h2 id="h-jobs">Did a job? Tap it</h2>' +
+      '<p class="hint">Every job is its own point</p></div><div class="job-grid">' + tiles + '</div>' + renderRules() + '</section>';
+  }
+
+  function renderZones(now, wk) {
+    var w = week(wk), late = '';
+    var pw = prevWeek(wk), first = firstWeek(), hasLast = pw >= first;
+    if (hasLast && S.weeks[pw] && now < lastChance(pw)) {
+      S.zones.forEach(function (z) {
+        if (isTicked(pw, z.id) || isExcused(pw, z.id)) return;
+        var who = S.weeks[pw].zones[z.id];
+        late += '<div class="late"><p>' + I.alert + '<span><b>Last week’s ' + esc(z.name) + '</b> (' + esc(person(who).name) +
+          ') is not ticked. Last chance ' + pad(GRACE_HOUR) + ':00, or minus ' + S.weeks[pw].pen + '.</span></p>' +
+          '<button type="button" class="btn sm" data-act="late" data-wk="' + pw + '" data-id="' + z.id + '">It was done</button></div>';
+      });
+    }
+    var rows = S.zones.map(function (z) {
+      var who = w.zones[z.id], t = (S.ticks[wk] || {})[z.id], right;
+      if (t) {
+        var at = new Date(t.at);
+        right = '<div class="zact state-done">' + I.check + '<span>Done<small>' + esc(fmtWeekday.format(at)) + ' ' + hhmm(at) + '</small></span>' +
+          (now - at < UNDO_MS ? '<button type="button" class="btn quiet" data-act="untick" data-wk="' + wk + '" data-id="' + z.id + '">Undo</button>' : '') + '</div>';
+      } else {
+        right = '<button type="button" class="btn sm zact" data-act="tick" data-id="' + z.id + '" aria-label="Mark ' + esc(z.name) + ' done">Mark done</button>';
+      }
+      return '<li class="zone' + (t ? ' done' : '') + '">' + av(who) +
+        '<div class="zhead"><div class="zname">' + esc(z.name) + '</div><div class="zwho">' + esc(person(who).name) + '</div></div>' +
+        right + '<div class="ztasks">' + esc(z.tasks) + '</div></li>';
+    }).join('');
+    var day = now.getDay(), monday = day === 1 && hasLast;
+    var nudge = day === 0 ? 'Sunday: check the zones, then sum up the week' : monday ? 'Monday: see how last week went' : '';
+    return '<section class="card zones" aria-labelledby="h-zones"><div class="card-head"><h2 id="h-zones">This week’s zones</h2>' +
+      '<p class="hint">Due Sunday night</p></div>' +
+      '<div class="captain">' + av(w.captain) + '<div class="grow"><div class="label">Captain</div>' +
+      '<div class="cname">' + esc(person(w.captain).name) + '</div>' + (nudge ? '<div class="nudge">' + nudge + '</div>' : '') + '</div>' +
+      '<button type="button" class="btn primary sm" data-act="sumup">' + I.list + (monday ? 'Last week’s sum-up' : 'Sum up the week') + '</button></div>' +
+      late + '<ul class="zone-list">' + rows + '</ul></section>';
+  }
+
+  function renderPoints(now, wk, items) {
+    var ms = monthStart(now), me = addMonths(now, 1);
+    var wt = sumBetween(items, fromKey(wk), weekEnd(wk)), mt = sumBetween(items, ms, me);
+    var max = 0;
+    S.people.forEach(function (p) { if (mt[p.id] > max) max = mt[p.id]; });
+    var monthName = fmtMonth.format(now);
+    var rows = byPoints(mt, wt).map(function (p) {
+      var m = mt[p.id], pct = max > 0 && m > 0 ? Math.round(m / max * 100) : 0;
+      return '<tr><td class="person"><span class="person-cell">' + av(p.id, 'sm') + esc(p.name) + '</span></td>' +
+        '<td class="bar-cell"><div class="track"><div class="bar who-' + (pIndex(p.id) + 1) + '" style="width:' + pct + '%"></div></div></td>' +
+        '<td' + (wt[p.id] < 0 ? ' class="neg"' : '') + '>' + fmtPts(wt[p.id]) + '</td>' +
+        '<td' + (m < 0 ? ' class="neg"' : '') + '>' + fmtPts(m) + '</td></tr>';
+    }).join('');
+    var cf = countingFrom(), notes = '';
+    var anyone = S.people.some(function (p) { return mt[p.id] !== 0; });
+    if (now < cf) {
+      notes += '<p class="note"><b>Trial run.</b> Points count for real from ' + esc(fmtDM.format(cf)) + '.</p>';
+    } else if (!anyone) {
+      notes += '<p class="note">Nobody has scored yet this month.</p>';
+    } else {
+      var lastDay = new Date(me.getFullYear(), me.getMonth(), 0).getDate(), bot = bottomOf(mt);
+      notes += '<p class="note">' + (bot.length === S.people.length ? 'Everyone is level right now' : 'Bottom right now: <b>' + esc(namesList(bot)) + '</b>') +
+        '. Whoever is bottom on ' + lastDay + ' ' + esc(monthName) + ' buys the cleaning supplies for ' + esc(fmtMonth.format(me)) + '.</p>';
+    }
+    var pm = addMonths(now, -1);
+    if (pm >= cf) {
+      var pt = sumBetween(items, pm, ms), pb = bottomOf(pt);
+      notes += '<p class="note">' + esc(fmtMonth.format(pm)) + ': ' + (pb.length === S.people.length
+        ? 'everyone finished level, so you all split the supplies for ' + esc(monthName) + '.'
+        : '<b>' + esc(namesList(pb)) + '</b> ' + (pb.length > 1 ? 'split' : 'buys') + ' the supplies for ' + esc(monthName) + '.') + '</p>';
+    }
+    return '<section class="card points" aria-labelledby="h-points"><div class="card-head"><h2 id="h-points">Points</h2></div>' +
+      '<table class="ptable"><thead><tr><th scope="col">Who</th><th scope="col"><span class="sr-only">Share of the month</span></th>' +
+      '<th scope="col">This week</th><th scope="col">' + esc(monthName) + '</th></tr></thead><tbody>' + rows + '</tbody></table>' + notes + '</section>';
+  }
+
+  function ticksAsItems(filterFn) {
+    var out = [];
+    Object.keys(S.ticks).forEach(function (wk) {
+      Object.keys(S.ticks[wk]).forEach(function (zid) {
+        var t = S.ticks[wk][zid];
+        var item = { id: 'tick|' + wk + '|' + zid, kind: 'tick', wk: wk, zone: zid, who: t.who, at: t.at, late: !!t.late };
+        if (filterFn(item)) out.push(item);
+      });
+    });
+    return out;
+  }
+  function newestFirst(a, b) { return a.at < b.at ? 1 : a.at > b.at ? -1 : 0; }
+
+  function renderToday(now) {
+    var today = dayKey(now);
+    var list = S.entries.filter(function (e) { return dayKey(new Date(e.at)) === today; })
+      .concat(ticksAsItems(function (t) { return dayKey(new Date(t.at)) === today; }))
+      .sort(newestFirst);
+    var LIMIT = 5, shown = list.slice(0, LIMIT);
+    var body = shown.length
+      ? '<ul class="feed">' + shown.map(function (e) { return feedRow(e, now, false); }).join('') + '</ul>'
+      : '<p class="empty">Nothing logged yet today.</p>';
+    if (list.length > LIMIT) body += '<p class="more">and ' + (list.length - LIMIT) + ' more today</p>';
+    return '<section class="card today" aria-labelledby="h-today"><div class="card-head"><h2 id="h-today">Today</h2>' +
+      '<button type="button" class="btn quiet" data-act="log">See everything</button></div>' + body + '</section>';
+  }
+
+  function feedRow(e, now, inLog) {
+    var at = new Date(e.at), name = esc(person(e.who).name), what, gain, cls = '';
+    if (e.kind === 'job') { what = '<b>' + name + '</b> <span>' + esc(e.jobName) + '</span>'; gain = '+' + e.pts; }
+    else if (e.kind === 'tick') { what = '<b>' + name + '</b> <span>' + esc(zoneById(e.zone).name) + ' zone done' + (e.late ? ' (last week)' : '') + '</span>'; gain = I.check; cls = ' ok'; }
+    else { what = '<b>' + name + '</b> <span>' + esc(zoneById(e.zone).name) + ' not ticked</span>'; gain = fmtPts(e.pts); cls = ' neg'; }
+    var extra = '';
+    if (inLog) extra = '<button type="button" class="btn quiet" data-act="remove" data-id="' + esc(e.kind === 'job' ? 'job|' + e.id : e.id) + '">Remove</button>';
+    else if (e.kind === 'job' && now - at < UNDO_MS) extra = '<button type="button" class="btn quiet" data-act="undo" data-id="' + esc(e.id) + '">Undo</button>';
+    return '<li><time datetime="' + esc(e.at) + '">' + hhmm(at) + '</time>' + dot(e.who) + '<span class="what">' + what + '</span>' +
+      '<span class="gain' + cls + '">' + gain + '</span>' + extra + '</li>';
+  }
+
+  function renderRules() {
+    return '<p class="rules"><b>House rules:</b> Finished it? Bin it. Your dishes done the same day. Stuff left out goes in the basket. ' +
+      'Zones done by Sunday night, or minus ' + S.penalty + '. Bottom of the month buys the cleaning supplies.</p>';
+  }
+
+  /* ---------- dialogs and messages ---------- */
+  var modalRoot = document.getElementById('modal-root'), lastFocus = null, pendingPin = null;
+  function openModal(html, cls, sticky) {
+    if (!modalRoot.innerHTML) lastFocus = document.activeElement;
+    modalRoot.innerHTML = '<div class="scrim"' + (sticky ? '' : ' data-scrim') + '><div class="dialog' + (cls ? ' ' + cls : '') +
+      '" role="dialog" aria-modal="true" aria-labelledby="m-title" tabindex="-1">' + html + '</div></div>';
+    document.body.classList.add('modal-open');
+    var f = modalRoot.querySelector('[autofocus]') || modalRoot.querySelector('.dialog');
+    if (f) f.focus();
+  }
+  function closeModal() {
+    modalRoot.innerHTML = '';
+    pendingPin = null;
+    document.body.classList.remove('modal-open');
+    if (lastFocus && lastFocus.focus && document.body.contains(lastFocus)) lastFocus.focus();
+    lastFocus = null;
+  }
+  var toastEl = document.getElementById('toast'), toastTimer = null;
+  function toast(msg, action) {
+    clearTimeout(toastTimer);
+    toastEl.innerHTML = '<span>' + esc(msg) + '</span>' + (action ? '<button type="button" id="toast-btn">' + esc(action.label) + '</button>' : '');
+    toastEl.classList.add('show');
+    if (action) document.getElementById('toast-btn').onclick = function () { hideToast(); action.fn(); };
+    toastTimer = setTimeout(hideToast, action ? 8000 : 4500);
+  }
+  function hideToast() { toastEl.classList.remove('show'); }
+
+  /* ---------- the week sum-up ---------- */
+  var sumWeek = null;
+  function defaultSumWeek(now) {
+    var cur = weekKey(now), pw = prevWeek(cur);
+    return now.getDay() === 1 && pw >= firstWeek() ? pw : cur;
+  }
+  function openSumup(wk) {
+    var now = new Date(), cur = weekKey(now), first = firstWeek();
+    if (wk < first) wk = first;
+    if (wk > cur) wk = cur;
+    sumWeek = wk;
+    var d = weekData(wk, now);
+    var totals = d.list.map(function (r) { return r.total; });
+    var minT = Math.min.apply(null, totals), maxT = Math.max.apply(null, totals);
+    var bottom = d.list.filter(function (r) { return r.total === minT; }), tops = d.list.filter(function (r) { return r.total === maxT; });
+    var html = '<div class="sum-head"><div><h2 id="m-title">Week sum-up</h2><p class="lead">' + esc(fmtShort.format(d.ws)) + ' to ' +
+      esc(fmtShort.format(addDays(d.ws, 6))) + (d.current ? ', this week so far' : '') + '. Captain: ' + esc(person(d.captain).name) + '.</p></div>' +
+      '<div class="btn-row"><button type="button" class="btn sm" data-act="sum-go" data-wk="' + prevWeek(wk) + '"' + (wk <= first ? ' disabled' : '') + '>Earlier week</button>' +
+      '<button type="button" class="btn sm" data-act="sum-go" data-wk="' + nextWeek(wk) + '"' + (wk >= cur ? ' disabled' : '') + '>Later week</button></div></div>';
+
+    if (minT === maxT) {
+      html += '<div class="sum-top"><div class="stat"><div><div class="k">Top and bottom</div><div class="v">Everyone is level on ' + fmtPts(minT) + '</div></div></div></div>';
+    } else {
+      html += '<div class="sum-top">' +
+        '<div class="stat">' + av(tops[0].p.id) + '<div><div class="k">Top of the week</div><div class="v">' + esc(namesList(tops.map(function (r) { return r.p; }))) + ', ' + plural(maxT, 'point', 'points') + '</div></div></div>' +
+        '<div class="stat">' + av(bottom[0].p.id) + '<div><div class="k">Bottom of the week</div><div class="v">' + esc(namesList(bottom.map(function (r) { return r.p; }))) + ', ' + plural(minT, 'point', 'points') + '</div></div></div></div>';
+    }
+
+    html += '<section class="sum-sec"><h3>Zones</h3><ul class="sum-zones">' + d.zones.map(function (x) {
+      var st;
+      if (x.state === 'done') st = '<span class="zstate ok">' + I.check + 'Done ' + esc(fmtWeekday.format(new Date(x.t.at))) + '</span>';
+      else if (x.state === 'late') st = '<span class="zstate ok">' + I.check + 'Done, ticked Monday</span>';
+      else if (x.state === 'missed') st = '<span class="zstate bad">Missed' + (d.pen ? ', minus ' + d.pen : '') + '</span>';
+      else if (x.state === 'excused') st = '<span class="zstate wait">Let off, no minus</span>';
+      else if (x.state === 'grace') st = '<span class="zstate bad">Not ticked, last chance ' + pad(GRACE_HOUR) + ':00</span>';
+      else st = '<span class="zstate wait">Not done yet</span>';
+      return '<li>' + av(x.who, 'sm') + '<span><b>' + esc(x.z.name) + '</b> <span class="muted">' + esc(person(x.who).name) + '</span></span>' + st + '</li>';
+    }).join('') + '</ul></section>';
+
+    html += '<section class="sum-sec"><h3>Points this week</h3><table class="sum-table"><thead><tr><th scope="col">Who</th><th scope="col">Jobs</th>' +
+      '<th scope="col">Points</th><th scope="col">Minus</th><th scope="col">Total</th></tr></thead><tbody>' + d.list.map(function (r) {
+        return '<tr><td><span class="person-cell">' + av(r.p.id, 'sm') + esc(r.p.name) + '</span></td><td>' + r.jobs + '</td><td>' + r.jobPts + '</td>' +
+          '<td' + (r.minus ? ' class="neg"' : '') + '>' + (r.minus ? '-' + r.minus : '0') + '</td>' +
+          '<td class="total' + (r.total < 0 ? ' neg' : '') + '">' + fmtPts(r.total) + '</td></tr>';
+      }).join('') + '</tbody></table></section>';
+
+    html += '<section class="sum-sec"><h3>Who did what</h3><ul class="did">' + d.list.map(function (r) {
+      var parts = Object.keys(r.by).sort(function (a, b) { return r.by[b] - r.by[a]; }).map(function (k) { return esc(k) + ' ×' + r.by[k]; });
+      return '<li>' + dot(r.p.id) + ' <b>' + esc(r.p.name) + ':</b> <span>' + (parts.length ? parts.join(', ') : 'nothing logged') + '</span></li>';
+    }).join('') + '</ul></section>';
+
+    var m = monthLine(now);
+    html += '<section class="sum-sec"><h3>' + esc(fmtMonth.format(now)) + ' so far</h3><p class="sum-month">' + byPoints(m.totals).map(function (p) {
+      return esc(p.name) + ' <b>' + fmtPts(m.totals[p.id]) + '</b>';
+    }).join(' · ') + '</p><p class="note">' + esc(m.note) + (m.bottom.length ? ' Bottom at the end of the month buys the cleaning supplies.' : '') + '</p></section>';
+
+    var link = waLink(sumText(wk, now));
+    html += '<section class="sum-sec"><h3>Send it to the house WhatsApp group</h3><div class="wa-row">' +
+      '<div class="qr" id="qr" role="img" aria-label="QR code that opens WhatsApp with this sum-up written out"></div>' +
+      '<div class="wa-text"><p>Scan this with your phone camera. WhatsApp opens with the sum-up written out. Pick the house group and press send.</p>' +
+      '<div class="btn-row"><a class="btn" href="' + esc(link) + '" target="_blank" rel="noopener">WhatsApp on this tablet</a>' +
+      '<button type="button" class="btn quiet" data-act="copy-sum">Copy the text</button></div></div></div></section>';
+
+    html += '<div class="actions"><button type="button" class="btn primary" data-act="close">Close</button></div>';
+    openModal(html, 'wide');
+    drawQR(link);
+  }
+  function drawQR(text) {
+    var box = document.getElementById('qr');
+    if (!box) return;
+    // Without the QR script (first load offline) the buttons beside it still work.
+    if (typeof window.qrcode !== 'function') { box.parentNode.removeChild(box); return; }
+    try {
+      var q = window.qrcode(0, 'L');
+      q.addData(text);
+      q.make();
+      box.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+    } catch (e) { box.parentNode.removeChild(box); }
+  }
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function () { toast('Copied. Paste it in the group chat.'); }, function () { showText(text); });
+    } else showText(text);
+  }
+  function showText(text) {
+    openModal('<h2 id="m-title">The week, ready to send</h2><p class="lead">Copy this and paste it in the group chat.</p>' +
+      '<textarea class="copy" readonly>' + esc(text) + '</textarea><div class="actions"><button type="button" class="btn primary" data-act="close">Done</button></div>');
+    var ta = modalRoot.querySelector('textarea');
+    if (ta) { ta.focus(); ta.select(); }
+  }
+
+  /* ---------- PIN ---------- */
+  var pinOpenUntil = 0;
+  function hashPin(p) {
+    var h = 2166136261, s = 'house-jobs:' + p;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    return h.toString(16);
+  }
+  function requirePin(fn) {
+    if (!S.pin) { askNewPin(fn); return; }
+    if (Date.now() < pinOpenUntil) { fn(); return; }
+    openModal('<form data-form="pin"><h2 id="m-title">House PIN</h2><p class="lead">Settings and removing points need the PIN.</p>' +
+      '<label class="field"><span class="lbl">PIN</span><input id="pin-in" type="password" inputmode="numeric" autocomplete="off" maxlength="8" autofocus></label>' +
+      '<p class="error" id="pin-err" hidden></p><div class="actions"><button type="button" class="btn" data-act="close">Cancel</button>' +
+      '<button type="submit" class="btn primary">Open</button></div></form>');
+    pendingPin = fn;
+  }
+  function askNewPin(fn) {
+    openModal('<form data-form="newpin"><h2 id="m-title">Set a house PIN</h2><p class="lead">Pick 4 to 8 numbers. You need it to change settings or take points off anyone, so nobody can wipe their own minus points.</p>' +
+      '<div class="grid-2"><label class="field"><span class="lbl">New PIN</span><input id="np1" type="password" inputmode="numeric" autocomplete="off" maxlength="8" autofocus></label>' +
+      '<label class="field"><span class="lbl">Same again</span><input id="np2" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label></div>' +
+      '<p class="error" id="pin-err" hidden></p><div class="actions"><button type="button" class="btn" data-act="close">Cancel</button>' +
+      '<button type="submit" class="btn primary">Save PIN</button></div></form>');
+    pendingPin = fn;
+  }
+  function checkNewPin(a, b) {
+    if (!/^\d{4,8}$/.test(a)) return 'Use 4 to 8 numbers.';
+    if (a !== b) return 'The two PINs do not match.';
+    return '';
+  }
+  function showErr(id, msg) { var el = document.getElementById(id); if (!el) return; el.textContent = msg; el.hidden = !msg; }
+
+  /* ---------- everything log ---------- */
+  function openLog() {
+    var now = new Date(), from = addMonths(now, -1);
+    var inRange = function (e) { return new Date(e.at) >= from; };
+    var items = S.entries.filter(inRange).concat(misses(now).filter(inRange)).concat(ticksAsItems(inRange)).sort(newestFirst);
+    var body = '', day = '';
+    items.forEach(function (e) {
+      var d = dayKey(new Date(e.at));
+      if (d !== day) { body += (day ? '</ul>' : '') + '<h3 class="day-h">' + esc(fmtShort.format(fromKey(d))) + '</h3><ul class="feed">'; day = d; }
+      body += feedRow(e, now, true);
+    });
+    if (day) body += '</ul>';
+    if (!items.length) body = '<p class="empty">Nothing logged since ' + esc(fmtDM.format(from)) + '.</p>';
+    openModal('<h2 id="m-title">Everything since ' + esc(fmtDM.format(from)) + '</h2>' +
+      '<p class="lead">Something wrong? Remove it. That needs the PIN. Removing a zone tick brings back its minus points once the week is over.</p>' +
+      body + '<div class="actions"><button type="button" class="btn primary" data-act="close">Close</button></div>', 'wide');
+  }
+  function removeItem(key) {
+    var p = key.split('|');
+    if (p[0] === 'job') { S.entries = S.entries.filter(function (e) { return e.id !== p[1]; }); }
+    else if (p[0] === 'miss') { S.excused[p[1]] = S.excused[p[1]] || {}; S.excused[p[1]][p[2]] = new Date().toISOString(); }
+    else if (p[0] === 'tick') { if (S.ticks[p[1]]) delete S.ticks[p[1]][p[2]]; }
+    save(); render();
+  }
+
+  /* ---------- settings ---------- */
+  var LOCKS = [[15, '15 min'], [30, '30 min'], [60, '1 hour'], [120, '2 hours'], [180, '3 hours'], [360, '6 hours']];
+  function jobRowHtml(j) {
+    return '<div class="row job-row" data-job="' + esc(j.id) + '">' +
+      '<label class="field"><span class="lbl">Job</span><input type="text" class="j-name" value="' + esc(j.name) + '" maxlength="40"></label>' +
+      '<label class="field"><span class="lbl">Points</span><select class="j-pts">' + [1, 2, 3, 4, 5].map(function (n) {
+        return '<option value="' + n + '"' + (n === j.pts ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label>' +
+      '<label class="field"><span class="lbl">Locks for</span><select class="j-lock">' + LOCKS.map(function (o) {
+        return '<option value="' + o[0] + '"' + (o[0] === j.lock ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label>' +
+      '<button type="button" class="btn quiet" data-act="job-del">Remove</button></div>';
+  }
+  function openSettings() {
+    var now = new Date(), wk = weekKey(now), w = week(wk);
+    var opts = function (sel) {
+      return S.people.map(function (p) { return '<option value="' + p.id + '"' + (p.id === sel ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('');
+    };
+    var html = '<form data-form="settings"><h2 id="m-title">Settings</h2><p class="lead">Changes save when you press Save at the bottom.</p>' +
+      '<section class="form-sec"><h3>The house</h3><div class="grid-2">' +
+      S.people.map(function (p, i) { return '<label class="field"><span class="lbl">Person ' + (i + 1) + '</span><input type="text" data-person="' + p.id + '" value="' + esc(p.name) + '" maxlength="20"></label>'; }).join('') +
+      '</div></section>' +
+      '<section class="form-sec"><h3>Jobs and points</h3><p class="help">After someone logs a job it locks for a while, so nobody can tap it twice in a row.</p>' +
+      '<div id="job-rows">' + S.jobs.map(jobRowHtml).join('') + '</div>' +
+      '<button type="button" class="btn" data-act="job-add">Add a job</button></section>' +
+      '<section class="form-sec"><h3>Zones</h3><p class="help">Each zone includes hoovering and mopping its own floors.</p>' +
+      S.zones.map(function (z, i) {
+        return '<div class="row zone-row" data-zone="' + z.id + '"><label class="field"><span class="lbl">Zone ' + (i + 1) + '</span><input type="text" class="z-name" value="' + esc(z.name) + '" maxlength="30"></label>' +
+          '<label class="field"><span class="lbl">What it covers</span><input type="text" class="z-tasks" value="' + esc(z.tasks) + '" maxlength="120"></label></div>';
+      }).join('') + '</section>' +
+      '<section class="form-sec"><h3>Who has what this week</h3><p class="help">Everyone moves on one zone every Monday, and the captain moves on too.</p><div class="grid-2">' +
+      S.zones.map(function (z) { return '<label class="field"><span class="lbl">' + esc(z.name) + '</span><select class="assign" data-zone="' + z.id + '">' + opts(w.zones[z.id]) + '</select></label>'; }).join('') +
+      '<label class="field"><span class="lbl">Captain</span><select id="cap">' + opts(w.captain) + '</select></label>' +
+      '<label class="field"><span class="lbl">Minus points for a zone not ticked</span><select id="pen">' + [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(function (n) {
+        return '<option value="' + n + '"' + (n === S.penalty ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label></div></section>' +
+      '<section class="form-sec"><h3>Screen</h3><label class="check"><input type="checkbox" id="awake"' + (S.keepAwake ? ' checked' : '') + '> Keep the screen on while the board is open</label>' +
+      '<div class="btn-row"><button type="button" class="btn" data-act="fullscreen">Full screen</button></div></section>' +
+      '<section class="form-sec"><h3>Backup</h3><p class="help">Points only live on this tablet. Save a backup now and then. ' +
+      (S.lastBackup ? 'Last backup: ' + esc(fmtShort.format(new Date(S.lastBackup))) + '.' : 'No backup yet.') + '</p>' +
+      '<div class="btn-row"><button type="button" class="btn" data-act="backup">Save a backup</button>' +
+      '<label class="btn" for="restore-file">Restore a backup</label><input type="file" id="restore-file" class="sr-only" accept="application/json,.json"></div></section>' +
+      '<section class="form-sec"><h3>Change the PIN</h3><div class="grid-2">' +
+      '<label class="field"><span class="lbl">New PIN</span><input id="cp1" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label>' +
+      '<label class="field"><span class="lbl">Same again</span><input id="cp2" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label></div>' +
+      '<div class="btn-row"><button type="button" class="btn" data-act="pin-save">Change PIN</button></div><p class="error" id="cp-err" hidden></p></section>' +
+      '<section class="form-sec"><h3>Start again</h3><p class="help">Wipes every point, tick and minus. People, jobs, zones and the PIN stay.</p>' +
+      '<button type="button" class="btn danger" data-act="reset">Start again</button></section>' +
+      '<p class="error" id="set-err" hidden></p>' +
+      '<div class="actions sticky-actions"><button type="button" class="btn" data-act="close">Cancel</button><button type="submit" class="btn primary">Save</button></div></form>';
+    openModal(html, 'wide', true);
+  }
+  function saveSettings(form) {
+    var err = [];
+    var names = [].map.call(form.querySelectorAll('[data-person]'), function (i) { return i.value.trim(); });
+    if (names.some(function (n) { return !n; })) err.push('Every person needs a name.');
+    var jobs = [].map.call(form.querySelectorAll('.job-row'), function (r) {
+      return { id: r.getAttribute('data-job'), name: r.querySelector('.j-name').value.trim(), pts: +r.querySelector('.j-pts').value, lock: +r.querySelector('.j-lock').value };
+    }).filter(function (j) { return j.name; });
+    if (!jobs.length) err.push('Keep at least one job.');
+    var zones = [].map.call(form.querySelectorAll('.zone-row'), function (r) {
+      return { id: r.getAttribute('data-zone'), name: r.querySelector('.z-name').value.trim(), tasks: r.querySelector('.z-tasks').value.trim() };
+    });
+    if (zones.some(function (z) { return !z.name; })) err.push('Every zone needs a name.');
+    var assign = {}, used = {};
+    [].forEach.call(form.querySelectorAll('.assign'), function (s) { assign[s.getAttribute('data-zone')] = s.value; used[s.value] = true; });
+    if (Object.keys(used).length !== S.people.length) err.push('Each person needs exactly one zone this week.');
+    if (err.length) { showErr('set-err', err.join(' ')); return; }
+
+    var now = new Date(), wk = weekKey(now);
+    ensureWeeks(now); // freeze every earlier week before the rota changes
+    S.people.forEach(function (p, i) { p.name = names[i]; });
+    S.jobs = jobs;
+    S.zones = zones;
+    S.penalty = +form.querySelector('#pen').value;
+    S.rot = { anchor: wk, zones: S.zones.map(function (z) { return pIndex(assign[z.id]); }), captain: pIndex(form.querySelector('#cap').value) };
+    S.weeks[wk] = computeWeek(wk);
+    S.keepAwake = form.querySelector('#awake').checked;
+    save(); closeModal(); render(); applyWakeLock();
+    toast('Saved.');
+  }
+  function doBackup() {
+    S.lastBackup = new Date().toISOString();
+    save();
+    var blob = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'house-jobs-backup-' + dayKey(new Date()) + '.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.parentNode.removeChild(a); }, 1500);
+    toast('Backup saved to Downloads.');
+  }
+  var pendingRestore = null;
+  function readRestore(file) {
+    var r = new FileReader();
+    r.onload = function () {
+      var s = null;
+      try { s = JSON.parse(r.result); } catch (e) { s = null; }
+      if (!valid(s)) { toast('That file is not a House Jobs backup.'); return; }
+      pendingRestore = upgrade(s);
+      openModal('<h2 id="m-title">Restore this backup?</h2><p class="lead">It replaces everything on this tablet with the backup' +
+        (s.lastBackup ? ' from ' + esc(fmtShort.format(new Date(s.lastBackup))) : '') + '.</p>' +
+        '<div class="actions"><button type="button" class="btn" data-act="close">Cancel</button><button type="button" class="btn primary" data-act="restore-yes">Restore</button></div>');
+    };
+    r.readAsText(file);
+  }
+
+  /* ---------- keep the screen on ---------- */
+  var wakeLock = null, wakePending = false;
+  function applyWakeLock() {
+    try {
+      if (!('wakeLock' in navigator)) return;
+      if (!S.keepAwake || document.visibilityState !== 'visible') {
+        if (wakeLock) { wakeLock.release(); wakeLock = null; }
+        return;
+      }
+      if (wakeLock || wakePending) return;
+      wakePending = true;
+      navigator.wakeLock.request('screen').then(function (l) {
+        wakePending = false; wakeLock = l;
+        l.addEventListener('release', function () { wakeLock = null; });
+      }).catch(function () { wakePending = false; });
+    } catch (e) { wakePending = false; }
+  }
+
+  /* ---------- taps ---------- */
+  var handlers = {
+    job: function (el, id) {
+      var j = jobById(id); if (!j) return;
+      var now = new Date(), last = lastFor(j.id);
+      if (last) {
+        var at = new Date(last.at), until = new Date(at.getTime() + j.lock * 60000);
+        if (now < until) { toast(person(last.who).name + ' did this at ' + hhmm(at) + '. It opens again at ' + hhmm(until) + '.'); return; }
+      }
+      openModal('<h2 id="m-title">Who did it?</h2><p class="lead">' + esc(j.name) + ', +' + plural(j.pts, 'point', 'points') + '</p><div class="pick-grid">' +
+        S.people.map(function (p) {
+          return '<button type="button" class="pick" data-act="pick" data-id="' + p.id + '" data-job="' + esc(j.id) + '">' + av(p.id) + '<span>' + esc(p.name) + '</span></button>';
+        }).join('') + '</div><div class="actions"><button type="button" class="btn" data-act="close">Cancel</button></div>');
+    },
+    pick: function (el, pid) {
+      var j = jobById(el.getAttribute('data-job'));
+      if (!j) { closeModal(); return; }
+      var now = new Date(), last = lastFor(j.id);
+      if (last && now - new Date(last.at) < j.lock * 60000) { closeModal(); toast('Someone just logged that one.'); return; }
+      var e = { id: uid(), kind: 'job', job: j.id, jobName: j.name, pts: j.pts, who: pid, at: now.toISOString() };
+      S.entries.push(e); save(); closeModal(); render();
+      toast('+' + j.pts + ' for ' + person(pid).name + ': ' + j.name, { label: 'Undo', fn: function () {
+        S.entries = S.entries.filter(function (x) { return x.id !== e.id; }); save(); render(); toast('Taken back.');
+      } });
+    },
+    undo: function (el, id) {
+      var e = entryById(id); if (!e) return;
+      if (new Date() - new Date(e.at) > UNDO_MS) { render(); toast('Too late to undo here. Use See everything.'); return; }
+      S.entries = S.entries.filter(function (x) { return x.id !== id; }); save(); render(); toast('Taken back.');
+    },
+    tick: function (el, zid) {
+      var wk = weekKey(new Date()), w = week(wk), z = zoneById(zid);
+      openModal('<h2 id="m-title">Tick off ' + esc(z.name) + '?</h2><p class="lead">This marks it done for ' + esc(person(w.zones[zid]).name) + ' this week.</p>' +
+        '<div class="actions"><button type="button" class="btn" data-act="close">Not yet</button>' +
+        '<button type="button" class="btn primary" data-act="tick-yes" data-id="' + zid + '" data-wk="' + wk + '">Yes, it’s done</button></div>');
+    },
+    'tick-yes': function (el, zid) {
+      var wk = el.getAttribute('data-wk'), w = week(wk), who = w.zones[zid];
+      S.ticks[wk] = S.ticks[wk] || {};
+      S.ticks[wk][zid] = { who: who, at: new Date().toISOString() };
+      save(); closeModal(); render();
+      toast(zoneById(zid).name + ' ticked off for ' + person(who).name + '.', { label: 'Undo', fn: function () {
+        if (S.ticks[wk]) delete S.ticks[wk][zid]; save(); render(); toast('Taken back.');
+      } });
+    },
+    untick: function (el, zid) {
+      var wk = el.getAttribute('data-wk'), t = (S.ticks[wk] || {})[zid];
+      if (!t) return;
+      if (new Date() - new Date(t.at) > UNDO_MS) { render(); return; }
+      delete S.ticks[wk][zid]; save(); render(); toast('Taken back.');
+    },
+    late: function (el, zid) {
+      var wk = el.getAttribute('data-wk'), z = zoneById(zid), who = S.weeks[wk] && S.weeks[wk].zones[zid];
+      openModal('<h2 id="m-title">Was last week’s ' + esc(z.name) + ' done?</h2><p class="lead">Only tick it if ' + esc(person(who).name) + ' really did it. The captain can check.</p>' +
+        '<div class="actions"><button type="button" class="btn" data-act="close">No</button>' +
+        '<button type="button" class="btn primary" data-act="late-yes" data-id="' + zid + '" data-wk="' + wk + '">Yes, it was done</button></div>');
+    },
+    'late-yes': function (el, zid) {
+      var wk = el.getAttribute('data-wk'), now = new Date();
+      closeModal();
+      if (now >= lastChance(wk)) { render(); toast('Too late, the last chance was ' + pad(GRACE_HOUR) + ':00.'); return; }
+      S.ticks[wk] = S.ticks[wk] || {};
+      S.ticks[wk][zid] = { who: S.weeks[wk].zones[zid], at: now.toISOString(), late: true };
+      save(); render(); toast('Ticked off for last week.');
+    },
+    sumup: function () { openSumup(defaultSumWeek(new Date())); },
+    'sum-go': function (el) { openSumup(el.getAttribute('data-wk')); },
+    'copy-sum': function () { copyText(sumText(sumWeek || weekKey(new Date()), new Date())); },
+    log: function () { openLog(); },
+    remove: function (el, key) {
+      requirePin(function () { removeItem(key); openLog(); toast('Removed.'); });
+    },
+    settings: function () { requirePin(openSettings); },
+    close: function () { closeModal(); },
+    'job-add': function () {
+      var box = document.getElementById('job-rows');
+      if (!box) return;
+      if (box.querySelectorAll('.job-row').length >= 12) { toast('Twelve jobs is the most.'); return; }
+      box.insertAdjacentHTML('beforeend', jobRowHtml({ id: 'j' + uid(), name: '', pts: 1, lock: 60 }));
+      var inputs = box.querySelectorAll('.j-name');
+      inputs[inputs.length - 1].focus();
+    },
+    'job-del': function (el) { var row = el.closest('.job-row'); if (row) row.parentNode.removeChild(row); },
+    fullscreen: function () {
+      var d = document.documentElement, fn = d.requestFullscreen || d.webkitRequestFullscreen;
+      var nope = function () { toast('This browser will not go full screen. Use Add to Home Screen instead.'); };
+      if (!fn) { nope(); return; }
+      try { var p = fn.call(d); if (p && p.catch) p.catch(nope); } catch (e) { nope(); }
+    },
+    backup: function () { doBackup(); },
+    'restore-yes': function () {
+      if (!pendingRestore) return;
+      S = pendingRestore; pendingRestore = null; save(); closeModal(); render(); toast('Backup restored.');
+    },
+    'pin-save': function () {
+      var a = (document.getElementById('cp1') || {}).value || '', b = (document.getElementById('cp2') || {}).value || '';
+      var msg = checkNewPin(a, b);
+      showErr('cp-err', msg);
+      if (msg) return;
+      S.pin = hashPin(a); save();
+      document.getElementById('cp1').value = ''; document.getElementById('cp2').value = '';
+      toast('PIN changed.');
+    },
+    reset: function () {
+      openModal('<h2 id="m-title">Start again?</h2><p class="lead">This wipes every point, tick and minus for everyone. People, jobs, zones and the PIN stay. Save a backup first if you might want them back.</p>' +
+        '<div class="actions"><button type="button" class="btn" data-act="close">Cancel</button><button type="button" class="btn danger" data-act="reset-yes">Wipe and start again</button></div>');
+    },
+    'reset-yes': function () {
+      var now = new Date();
+      S.entries = []; S.ticks = {}; S.excused = {}; S.weeks = {}; S.start = dayKey(now);
+      ensureWeeks(now); save(); closeModal(); render(); toast('Fresh start. Everyone is on zero.');
+    }
+  };
+
+  document.addEventListener('click', function (ev) {
+    var t = ev.target;
+    if (t && t.hasAttribute && t.hasAttribute('data-scrim')) { closeModal(); return; }
+    var el = t && t.closest ? t.closest('[data-act]') : null;
+    if (el && !el.disabled && handlers[el.getAttribute('data-act')]) {
+      ev.preventDefault();
+      handlers[el.getAttribute('data-act')](el, el.getAttribute('data-id'));
+    }
+    applyWakeLock();
+  });
+  document.addEventListener('submit', function (ev) {
+    var form = ev.target, kind = form.getAttribute('data-form');
+    if (!kind) return;
+    ev.preventDefault();
+    if (kind === 'pin') {
+      var v = document.getElementById('pin-in').value;
+      if (hashPin(v) !== S.pin) { showErr('pin-err', 'That is not the PIN.'); document.getElementById('pin-in').select(); return; }
+      pinOpenUntil = Date.now() + PIN_OPEN_MS;
+      var fn = pendingPin; closeModal(); if (fn) fn();
+    } else if (kind === 'newpin') {
+      var a = document.getElementById('np1').value, b = document.getElementById('np2').value, msg = checkNewPin(a, b);
+      showErr('pin-err', msg);
+      if (msg) return;
+      S.pin = hashPin(a); save(); pinOpenUntil = Date.now() + PIN_OPEN_MS;
+      var fn2 = pendingPin; closeModal(); toast('PIN saved.'); if (fn2) fn2();
+    } else if (kind === 'settings') {
+      saveSettings(form);
+    }
+  });
+  document.addEventListener('change', function (ev) {
+    if (ev.target && ev.target.id === 'restore-file' && ev.target.files && ev.target.files[0]) readRestore(ev.target.files[0]);
+  });
+  document.addEventListener('keydown', function (ev) {
+    if (!modalRoot.innerHTML) return;
+    if (ev.key === 'Escape') { closeModal(); return; }
+    if (ev.key !== 'Tab') return;
+    var f = [].filter.call(modalRoot.querySelectorAll('button, a[href], input, select, textarea, label[for]'), function (x) { return !x.disabled && x.offsetParent !== null; });
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (ev.shiftKey && document.activeElement === first) { ev.preventDefault(); last.focus(); }
+    else if (!ev.shiftKey && document.activeElement === last) { ev.preventDefault(); first.focus(); }
+  });
+  document.addEventListener('visibilitychange', function () {
+    // Re-read from storage only when storage works, or a tablet with blocked storage would lose its points.
+    if (document.visibilityState === 'visible') { if (storageOK) S = load(new Date()); render(); }
+    applyWakeLock();
+  });
+  window.addEventListener('storage', function (e) { if (e.key === KEY && storageOK) { S = load(new Date()); render(); } });
+  // Redraw every minute, so a locked job opens again on its own and the clock stays right.
+  setInterval(function () { if (hhmm(new Date()) !== lastMinute) render(); }, 5000);
+
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* optional */ }
+  save();
+  render();
+  applyWakeLock();
+})();
+</script>
+</body>
+</html>
