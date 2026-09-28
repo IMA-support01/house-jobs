@@ -29,6 +29,8 @@
   --p2:#eda100;--p2-ink:#0b0b0b;
   --p3:#e87ba4;--p3-ink:#0b0b0b;
   --p4:#008300;--p4-ink:#ffffff;
+  --p5:#4a3aa7;--p5-ink:#ffffff;
+  --p0:#8f8d86;--p0-ink:#ffffff;
   --shadow:0 1px 2px rgba(24,22,16,.06),0 2px 6px rgba(24,22,16,.04);
 }
 @media (prefers-color-scheme:dark){
@@ -44,6 +46,8 @@
     --p2:#c98500;--p2-ink:#0b0b0b;
     --p3:#d55181;--p3-ink:#0b0b0b;
     --p4:#008300;--p4-ink:#ffffff;
+    --p5:#7c3aed;--p5-ink:#ffffff;
+    --p0:#6f6d67;--p0-ink:#ffffff;
     --shadow:none;
   }
 }
@@ -109,6 +113,9 @@ button,.btn{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;us
 .who-2{--pc:var(--p2);--pc-ink:var(--p2-ink)}
 .who-3{--pc:var(--p3);--pc-ink:var(--p3-ink)}
 .who-4{--pc:var(--p4);--pc-ink:var(--p4-ink)}
+.who-5{--pc:var(--p5);--pc-ink:var(--p5-ink)}
+.who-0{--pc:var(--p0);--pc-ink:var(--p0-ink)}
+.av.two{font-size:19px;letter-spacing:-.02em}
 
 /* buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 18px;border-radius:12px;border:1.5px solid var(--ink-3);background:var(--btn-2);font-weight:650;font-size:17px;white-space:nowrap;text-decoration:none;color:var(--ink)}
@@ -179,10 +186,11 @@ button,.btn{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;us
 .dialog:focus{outline:none}
 .dialog h2{margin:0 0 4px;font-size:26px;line-height:1.2}
 .dialog .lead{margin:0 0 18px;color:var(--ink-2);font-size:17px}
-.pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
 .pick{display:flex;align-items:center;gap:16px;min-height:104px;padding:16px 18px;border-radius:16px;border:1.5px solid var(--line);background:var(--fill);font-size:26px;font-weight:650;text-align:left}
 .pick:active{background:var(--fill-2)}
 .pick .av{width:60px;height:60px;font-size:28px}
+.pick .av.two{font-size:24px}
 .actions{display:flex;justify-content:flex-end;gap:12px;margin-top:20px;flex-wrap:wrap}
 .sticky-actions{position:sticky;bottom:-24px;background:var(--card);padding:14px 0 24px;margin-bottom:-24px;border-top:1px solid var(--line)}
 .q{margin:18px 0 10px;font-weight:650;font-size:18px}
@@ -258,6 +266,10 @@ textarea.copy{min-height:280px;font-size:16px}
 .job-row .btn.quiet{margin-bottom:12px}
 .job-row + .job-row .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .zone-row{grid-template-columns:minmax(0,220px) minmax(0,1fr);align-items:start}
+.person-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 10px;align-items:end}
+.person-row .btn.quiet{margin-bottom:12px}
+.person-row + .person-row .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.person-row.leaving input{text-decoration:line-through;opacity:.55}
 .check{display:flex;align-items:center;gap:12px;min-height:50px;font-weight:600}
 .check input{width:24px;height:24px}
 .error{color:var(--bad);font-weight:600;margin:10px 0 0}
@@ -295,7 +307,9 @@ textarea.copy{min-height:280px;font-size:16px}
   var KEEP_DAYS = 400;
   var DISH = 'dishes';
   var DISH_NAME = 'Wash others’ dishes';
-  var REASONS = ['Left dishes', 'Left stuff out', 'Didn’t bin it', 'Mess in the kitchen'];
+  var REASONS = ['Left dishes', 'Left stuff out', 'Didn’t bin it', 'Mess in the kitchen', 'Other'];
+  var OTHER = REASONS.length - 1;
+  var MAX_PEOPLE = 5;              // five colours that stay apart, colour-blind eyes included
 
   /* ---------- dates, all in the tablet's local time ---------- */
   function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -331,7 +345,17 @@ textarea.copy{min-height:280px;font-size:16px}
   function fmtPts(n) { return n < 0 ? '-' + Math.abs(n) : String(n); }
 
   /* ---------- state ---------- */
-  function mkItems(zid, names) { return names.map(function (n, i) { return { id: zid + 't' + (i + 1), name: n }; }); }
+  function mkItems(zid, names, tag) { return names.map(function (n, i) { return { id: zid + (tag || 't') + (i + 1), name: n }; }); }
+  // The house as Michal laid it out on 28 Sep: hallway and laundry room, kitchen, dining room, living room, terrace.
+  // Four zones of about the same size, apart from the kitchen, which everyone gets in turn.
+  function houseZones(kitchen) {
+    return [
+      kitchen || { id: 'z1', name: 'Kitchen', items: mkItems('z1', ['Hob', 'Oven front', 'Fridge clear-out', 'Sink', 'Mop the floor']) },
+      { id: 'z2', name: 'Hallway and laundry room', items: mkItems('z2', ['Tidy the shoes', 'Take out the bins', 'Hoover the hallway', 'Mop the hallway', 'Tidy the laundry room'], 'h') },
+      { id: 'z3', name: 'Living room', items: mkItems('z3', ['Hoover', 'Dust', 'Tidy the sofa', 'Clear cups and rubbish'], 'l') },
+      { id: 'z4', name: 'Dining room and terrace', items: mkItems('z4', ['Clean the dining table', 'Wipe the dining room windows', 'Sweep the terrace', 'Tidy the terrace'], 'd') }
+    ];
+  }
   function freshState(now) {
     return {
       v: 1,
@@ -339,7 +363,8 @@ textarea.copy{min-height:280px;font-size:16px}
         { id: 'p1', name: 'Michal' },
         { id: 'p2', name: 'Ciaran' },
         { id: 'p3', name: 'Brodie' },
-        { id: 'p4', name: 'Eoin' }
+        { id: 'p4', name: 'Eoin' },
+        { id: 'p5', name: 'Max' }
       ],
       jobs: [
         { id: 'j1', name: 'Empty the drying rack', pts: 1, lock: 60 },
@@ -350,14 +375,11 @@ textarea.copy{min-height:280px;font-size:16px}
         { id: 'j6', name: 'Recycling or glass run', pts: 2, lock: 60 },
         { id: 'j7', name: 'Hoover the kitchen or hall', pts: 1, lock: 60 }
       ],
-      zones: [
-        { id: 'z1', name: 'Kitchen', items: mkItems('z1', ['Hob', 'Oven front', 'Fridge clear-out', 'Sink', 'Mop the floor']) },
-        { id: 'z2', name: 'Bathrooms', items: mkItems('z2', ['Toilets', 'Showers', 'Sinks', 'Mirrors', 'Mop the floors']) },
-        { id: 'z3', name: 'Living room and hall', items: mkItems('z3', ['Hoover', 'Stairs', 'Dust', 'Tidy the sofa']) },
-        { id: 'z4', name: 'Bins, laundry, outside', items: mkItems('z4', ['Wheelie bins out and back', 'Laundry room', 'Front door']) }
-      ],
-      // rot.zones[i] = index of the person who has zone i in the anchor week; everyone moves on one each Monday
-      rot: { anchor: weekKey(now), zones: [1, 2, 3, 0], captain: 0 },
+      zones: houseZones(),
+      // rot.zones[i] = who has zone i in the anchor week; everyone moves on one each Monday.
+      // With more people than zones, whoever has no zone that week is captain.
+      rot: { anchor: weekKey(now), zones: ['p2', 'p3', 'p4', 'p5'], captain: 'p1' },
+      layout: 2,
       penalty: 1,          // minus for each zone task not ticked by Sunday night
       penMode: 'task',
       dishesPer: 2,        // someone else's dishes: this many for 1 point
@@ -373,12 +395,15 @@ textarea.copy{min-height:280px;font-size:16px}
     };
   }
   function valid(s) {
-    return !!(s && s.v === 1 && Array.isArray(s.people) && s.people.length === 4 && Array.isArray(s.jobs) &&
+    return !!(s && s.v === 1 && Array.isArray(s.people) && s.people.length >= 1 && Array.isArray(s.jobs) &&
       Array.isArray(s.zones) && s.zones.length >= 1 && s.rot && Array.isArray(s.rot.zones) && Array.isArray(s.entries) &&
       typeof s.start === 'string');
   }
   function upgrade(s) {
     s.ticks = s.ticks || {}; s.excused = s.excused || {}; s.weeks = s.weeks || {}; s.itemTicks = s.itemTicks || {};
+    // The rota used to point at people by position; it points at them by id now, so people can move in and out.
+    if (s.rot.zones.length && typeof s.rot.zones[0] === 'number') s.rot.zones = s.rot.zones.map(function (i) { return (s.people[i] || s.people[0]).id; });
+    if (typeof s.rot.captain === 'number') s.rot.captain = (s.people[s.rot.captain] || s.people[0]).id;
     if (typeof s.dishesPer !== 'number') s.dishesPer = 2;
     s.zones.forEach(function (z) {
       if (!Array.isArray(z.items)) {
@@ -418,7 +443,26 @@ textarea.copy{min-height:280px;font-size:16px}
 
   var S = load(new Date());
 
-  function person(id) { for (var i = 0; i < S.people.length; i++) if (S.people[i].id === id) return S.people[i]; return { id: id, name: '?' }; }
+  function findPerson(id) { for (var i = 0; i < S.people.length; i++) if (S.people[i].id === id) return S.people[i]; return null; }
+  function person(id) { return findPerson(id) || { id: id, name: '?' }; }
+  function activePeople() { return S.people.filter(function (p) { return !p.gone; }); }
+  function nextPersonId() {
+    var n = 0;
+    S.people.forEach(function (p) { var m = /^p(\d+)$/.exec(p.id); if (m && +m[1] > n) n = +m[1]; });
+    return 'p' + (n + 1);
+  }
+  // Colours follow the people living here now; someone who moved out shows in grey in the history.
+  function colorSlot(id) {
+    var act = activePeople();
+    for (var i = 0; i < act.length; i++) if (act[i].id === id) return i + 1;
+    return 0;
+  }
+  // One letter, or two when two people share a first letter (Michal and Max).
+  function initials(id) {
+    var n = person(id).name.trim(), first = n.charAt(0).toUpperCase();
+    var clash = S.people.some(function (q) { return q.id !== id && !q.gone && q.name.trim().charAt(0).toUpperCase() === first; });
+    return clash ? first + n.charAt(1).toLowerCase() : first;
+  }
   function pIndex(id) { for (var i = 0; i < S.people.length; i++) if (S.people[i].id === id) return i; return 0; }
   function jobById(id) { for (var i = 0; i < S.jobs.length; i++) if (S.jobs[i].id === id) return S.jobs[i]; return null; }
   function zoneById(id) { for (var i = 0; i < S.zones.length; i++) if (S.zones[i].id === id) return S.zones[i]; return { id: id, name: 'Zone', items: [] }; }
@@ -428,10 +472,10 @@ textarea.copy{min-height:280px;font-size:16px}
     return null;
   }
   function av(id, cls) {
-    return '<span class="av who-' + (pIndex(id) + 1) + (cls ? ' ' + cls : '') + '" aria-hidden="true">' +
-      esc(person(id).name.charAt(0).toUpperCase()) + '</span>';
+    var ini = initials(id);
+    return '<span class="av who-' + colorSlot(id) + (ini.length > 1 ? ' two' : '') + (cls ? ' ' + cls : '') + '" aria-hidden="true">' + esc(ini) + '</span>';
   }
-  function dot(id) { return '<span class="dot who-' + (pIndex(id) + 1) + '" aria-hidden="true"></span>'; }
+  function dot(id) { return '<span class="dot who-' + colorSlot(id) + '" aria-hidden="true"></span>'; }
   function namesList(ps) {
     var n = ps.map(function (p) { return p.name; });
     return n.length <= 1 ? n.join('') : n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1];
@@ -444,9 +488,63 @@ textarea.copy{min-height:280px;font-size:16px}
   /* ---------- weeks, zones and the rota ---------- */
   function firstWeek() { return weekKey(fromKey(S.start)); }
   function computeWeek(wk) {
-    var k = weeksBetween(S.rot.anchor, wk), n = S.people.length, z = {};
-    S.zones.forEach(function (zone, i) { z[zone.id] = S.people[mod((S.rot.zones[i] || 0) + k, n)].id; });
-    return { zones: z, captain: S.people[mod(S.rot.captain + k, n)].id, pen: S.penalty, mode: 'task' };
+    var act = activePeople(), n = act.length, k = weeksBetween(S.rot.anchor, wk), z = {};
+    var at = function (pid) { for (var i = 0; i < n; i++) if (act[i].id === pid) return i; return 0; };
+    S.zones.forEach(function (zone, i) { z[zone.id] = act[mod(at(S.rot.zones[i]) + k, n)].id; });
+    return { zones: z, captain: act[mod(at(S.rot.captain) + k, n)].id, pen: S.penalty, mode: 'task' };
+  }
+  // Line the rota up again from this week on, after people or zones changed. This week's own snapshot
+  // stays as it was: whoever is still here keeps their zone, the rest go to whoever has none, and with
+  // more people than zones the one left over is captain.
+  function reanchor(wk) {
+    var act = activePeople(), cur = week(wk), taken = {};
+    var owners = S.zones.map(function (z) {
+      var o = cur.zones[z.id], p = findPerson(o);
+      if (p && !p.gone && !taken[o]) { taken[o] = true; return o; }
+      return null;
+    }).map(function (o) {
+      if (o) return o;
+      var free = act.filter(function (p) { return !taken[p.id]; })[0] || act[0];
+      taken[free.id] = true;
+      return free.id;
+    });
+    var spare = act.filter(function (p) { return owners.indexOf(p.id) < 0; }), cap = findPerson(cur.captain);
+    S.rot = { anchor: wk, zones: owners, captain: spare.length ? spare[0].id : (cap && !cap.gone ? cap.id : act[0].id) };
+  }
+  var OLD_ZONES = [
+    ['kitchen', 'hob|oven front|fridge clear-out|sink|mop the floor'],
+    ['bathrooms', 'toilets|showers|sinks|mirrors|mop the floors'],
+    ['living room and hall', 'hoover|stairs|dust|tidy the sofa'],
+    ['bins, laundry, outside', 'wheelie bins out and back|laundry room|front door']
+  ];
+  function zonesUntouched(zones) {
+    return zones.length === OLD_ZONES.length && zones.every(function (z, i) {
+      var name = z.name.trim().toLowerCase().replace(' and outside', ', outside');
+      var items = (z.items || []).map(function (x) { return x.name.trim().toLowerCase(); }).join('|');
+      return name === OLD_ZONES[i][0] && items === OLD_ZONES[i][1];
+    });
+  }
+  // 28 Sep: the zones as Michal described the house, and Max moving in. Runs once per board.
+  // Zones someone already edited in settings are left alone. This week stays as it was.
+  function migrateLayout(now) {
+    if ((S.layout || 1) >= 2) return false;
+    ensureWeeks(now);
+    var wk = weekKey(now), changed = false;
+    if (zonesUntouched(S.zones)) {
+      S.zones = houseZones(S.zones[0]);
+      ['z2', 'z3', 'z4'].forEach(function (zid) {
+        if (S.ticks[wk]) delete S.ticks[wk][zid];
+        if (S.itemTicks[wk]) delete S.itemTicks[wk][zid];
+      });
+      changed = true;
+    }
+    if (!S.people.some(function (p) { return p.name.trim().toLowerCase() === 'max'; }) && activePeople().length < MAX_PEOPLE) {
+      S.people.push({ id: nextPersonId(), name: 'Max' });
+      changed = true;
+    }
+    if (changed) reanchor(wk);
+    S.layout = 2;
+    return true;
   }
   // Freeze each week's rota the first time it is seen, so changing the rota later never rewrites history.
   function ensureWeeks(now) {
@@ -544,12 +642,12 @@ textarea.copy{min-height:280px;font-size:16px}
   // The first month only counts if the board started in its first week; otherwise it is a trial run.
   function countingFrom() { var st = fromKey(S.start); return st.getDate() <= 7 ? monthStart(st) : addMonths(st, 1); }
   function bottomOf(t) {
-    var min = Infinity;
-    S.people.forEach(function (p) { if (t[p.id] < min) min = t[p.id]; });
-    return S.people.filter(function (p) { return t[p.id] === min; });
+    var min = Infinity, act = activePeople();
+    act.forEach(function (p) { if (t[p.id] < min) min = t[p.id]; });
+    return act.filter(function (p) { return t[p.id] === min; });
   }
   function byPoints(t, t2) {
-    return S.people.slice().sort(function (a, b) {
+    return activePeople().sort(function (a, b) {
       return (t[b.id] - t[a.id]) || (t2 ? t2[b.id] - t2[a.id] : 0) || (pIndex(a.id) - pIndex(b.id));
     });
   }
@@ -587,7 +685,11 @@ textarea.copy{min-height:280px;font-size:16px}
       if (pen && rows[who]) rows[who].minus += pen;
       return { z: z, who: who, state: state, st: st, missed: missed, pen: pen };
     });
-    var list = S.people.map(function (p) { var r = rows[p.id]; r.total = r.jobPts - r.minus; return r; })
+    var inWeek = {};
+    S.zones.forEach(function (z) { inWeek[w.zones[z.id]] = true; });
+    inWeek[w.captain] = true;
+    var list = S.people.filter(function (p) { var r = rows[p.id]; return !p.gone || r.jobs || r.minus || inWeek[p.id]; })
+      .map(function (p) { var r = rows[p.id]; r.total = r.jobPts - r.minus; return r; })
       .sort(function (a, b) { return (b.total - a.total) || (b.jobs - a.jobs) || (pIndex(a.p.id) - pIndex(b.p.id)); });
     minuses.sort(function (a, b) { return a.at < b.at ? -1 : 1; });
     return { wk: wk, ws: ws, captain: w.captain, pen: w.pen, mode: w.mode, zones: zones, list: list, minuses: minuses, owners: owners, current: wk === weekKey(now) };
@@ -597,8 +699,8 @@ textarea.copy{min-height:280px;font-size:16px}
     return {
       totals: mt,
       note: now < cf ? 'Trial run. Points count for real from ' + fmtDM.format(cf) + '.'
-        : bot.length === S.people.length ? 'Everyone is level.' : 'Bottom right now: ' + namesList(bot) + '.',
-      bottom: now < cf || bot.length === S.people.length ? [] : bot
+        : bot.length === activePeople().length ? 'Everyone is level.' : 'Bottom right now: ' + namesList(bot) + '.',
+      bottom: now < cf || bot.length === activePeople().length ? [] : bot
     };
   }
   // The text that goes to the WhatsApp group. The short one keeps the QR code easy to scan.
@@ -670,7 +772,7 @@ textarea.copy{min-height:280px;font-size:16px}
       (storageOK ? '' : '<p class="warn">This browser is not saving. Points will be lost when the page closes.</p>') +
       '<div class="board">' + renderJobs(now) + renderZones(now, wk) +
       '<div class="side">' + renderPoints(now, wk, items) + renderToday(now) + '</div></div>';
-    lastMinute = hhmm(now);
+    lastMinute = dayKey(now) + ' ' + hhmm(now);
   }
 
   function renderTop(now) {
@@ -739,10 +841,11 @@ textarea.copy{min-height:280px;font-size:16px}
         right + '<span class="ztasks chips">' + chips + '</span></button></li>';
     }).join('');
     var day = now.getDay(), monday = day === 1 && hasLast;
+    var capHasZone = S.zones.some(function (z) { return w.zones[z.id] === w.captain; });
     var nudge = day === 0 ? 'Sunday: check the zones, then sum up the week' : monday ? 'Monday: see how last week went' : '';
     return '<section class="card zones" aria-labelledby="h-zones"><div class="card-head"><h2 id="h-zones">This week’s zones</h2>' +
       '<p class="hint">Tap a zone to tick its jobs. Due Sunday night</p></div>' +
-      '<div class="captain">' + av(w.captain) + '<div class="grow"><div class="label">Captain</div>' +
+      '<div class="captain">' + av(w.captain) + '<div class="grow"><div class="label">Captain' + (capHasZone ? '' : ', no zone this week') + '</div>' +
       '<div class="cname">' + esc(person(w.captain).name) + '</div>' + (nudge ? '<div class="nudge">' + nudge + '</div>' : '') + '</div>' +
       '<button type="button" class="btn primary sm" data-act="sumup">' + I.list + (monday ? 'Last week’s sum-up' : 'Sum up the week') + '</button></div>' +
       late + '<ul class="zone-list">' + rows + '</ul></section>';
@@ -752,30 +855,30 @@ textarea.copy{min-height:280px;font-size:16px}
     var ms = monthStart(now), me = addMonths(now, 1);
     var wt = sumBetween(items, fromKey(wk), weekEnd(wk)), mt = sumBetween(items, ms, me);
     var max = 0;
-    S.people.forEach(function (p) { if (mt[p.id] > max) max = mt[p.id]; });
+    activePeople().forEach(function (p) { if (mt[p.id] > max) max = mt[p.id]; });
     var monthName = fmtMonth.format(now);
     var rows = byPoints(mt, wt).map(function (p) {
       var m = mt[p.id], pct = max > 0 && m > 0 ? Math.round(m / max * 100) : 0;
       return '<tr><td class="person"><span class="person-cell">' + av(p.id, 'sm') + esc(p.name) + '</span></td>' +
-        '<td class="bar-cell"><div class="track"><div class="bar who-' + (pIndex(p.id) + 1) + '" style="width:' + pct + '%"></div></div></td>' +
+        '<td class="bar-cell"><div class="track"><div class="bar who-' + colorSlot(p.id) + '" style="width:' + pct + '%"></div></div></td>' +
         '<td' + (wt[p.id] < 0 ? ' class="neg"' : '') + '>' + fmtPts(wt[p.id]) + '</td>' +
         '<td' + (m < 0 ? ' class="neg"' : '') + '>' + fmtPts(m) + '</td></tr>';
     }).join('');
     var cf = countingFrom(), notes = '';
-    var anyone = S.people.some(function (p) { return mt[p.id] !== 0; });
+    var anyone = activePeople().some(function (p) { return mt[p.id] !== 0; });
     if (now < cf) {
       notes += '<p class="note"><b>Trial run.</b> Points count for real from ' + esc(fmtDM.format(cf)) + '.</p>';
     } else if (!anyone) {
       notes += '<p class="note">Nobody has scored yet this month.</p>';
     } else {
       var lastDay = new Date(me.getFullYear(), me.getMonth(), 0).getDate(), bot = bottomOf(mt);
-      notes += '<p class="note">' + (bot.length === S.people.length ? 'Everyone is level right now' : 'Bottom right now: <b>' + esc(namesList(bot)) + '</b>') +
+      notes += '<p class="note">' + (bot.length === activePeople().length ? 'Everyone is level right now' : 'Bottom right now: <b>' + esc(namesList(bot)) + '</b>') +
         '. Whoever is bottom on ' + lastDay + ' ' + esc(monthName) + ' buys the cleaning supplies for ' + esc(fmtMonth.format(me)) + '.</p>';
     }
     var pm = addMonths(now, -1);
     if (pm >= cf) {
       var pt = sumBetween(items, pm, ms), pb = bottomOf(pt);
-      notes += '<p class="note">' + esc(fmtMonth.format(pm)) + ': ' + (pb.length === S.people.length
+      notes += '<p class="note">' + esc(fmtMonth.format(pm)) + ': ' + (pb.length === activePeople().length
         ? 'everyone finished level, so you all split the supplies for ' + esc(monthName) + '.'
         : '<b>' + esc(namesList(pb)) + '</b> ' + (pb.length > 1 ? 'split' : 'buys') + ' the supplies for ' + esc(monthName) + '.') + '</p>';
     }
@@ -836,7 +939,9 @@ textarea.copy{min-height:280px;font-size:16px}
 
   function renderRules() {
     return '<p class="rules"><b>House rules:</b> Finished it? Bin it. Your own dishes done the same day. Stuff left out goes in the basket. ' +
-      'Every zone task not ticked by Sunday night is minus ' + S.penalty + '. Anyone can give a minus, with a reason, and everyone sees who gave it. ' +
+      'Every zone task not ticked by Sunday night is minus ' + S.penalty + '. ' +
+      (activePeople().length > S.zones.length ? 'Whoever has no zone that week is captain. ' : '') +
+      'Anyone can give a minus, with a reason, and everyone sees who gave it. ' +
       'Bottom of the month buys the cleaning supplies.</p>';
   }
 
@@ -897,7 +1002,7 @@ textarea.copy{min-height:280px;font-size:16px}
   function openMinus() {
     md = { from: null, to: null, why: null };
     var ppl = function (grp) {
-      return S.people.map(function (p) {
+      return activePeople().map(function (p) {
         return '<button type="button" class="pill" data-act="md" data-grp="' + grp + '" data-id="' + p.id + '" aria-pressed="false">' + dot(p.id) + esc(p.name) + '</button>';
       }).join('');
     };
@@ -924,10 +1029,10 @@ textarea.copy{min-height:280px;font-size:16px}
       '<span class="num" id="dd-n" aria-live="polite">' + dd.n + '</span>' +
       '<button type="button" class="btn" data-act="dd-step" data-id="1" aria-label="One more">' + I.plus + '</button>' +
       '<span class="eq" id="dd-pts">= ' + plural(dishPoints(dd.n), 'point', 'points') + '</span></div>' +
-      '<p class="q">Whose were they? <span class="opt">(if you know)</span></p><div class="pill-row">' + S.people.map(function (p) {
+      '<p class="q">Whose were they? <span class="opt">(if you know)</span></p><div class="pill-row">' + activePeople().map(function (p) {
         return '<button type="button" class="pill" data-act="dd-owner" data-grp="owner" data-id="' + p.id + '" aria-pressed="false">' + dot(p.id) + esc(p.name) + '</button>';
       }).join('') + '</div>' +
-      '<p class="q">Who washed them?</p><div class="pick-grid">' + S.people.map(function (p) {
+      '<p class="q">Who washed them?</p><div class="pick-grid">' + activePeople().map(function (p) {
         return '<button type="button" class="pick" data-act="dd-pick" data-id="' + p.id + '">' + av(p.id) + '<span>' + esc(p.name) + '</span></button>';
       }).join('') + '</div>' +
       '<p class="error" id="dd-err" hidden></p>' +
@@ -1114,6 +1219,12 @@ textarea.copy{min-height:280px;font-size:16px}
         return '<option value="' + o[0] + '"' + (o[0] === j.lock ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label>' +
       '<button type="button" class="btn quiet" data-act="job-del">Remove</button></div>';
   }
+  function personRowHtml(p) {
+    return '<div class="person-row" data-person-row="' + p.id + '"><label class="field"><span class="lbl">Name</span>' +
+      '<input type="text" data-person="' + p.id + '" value="' + esc(p.name) + '" maxlength="20"></label>' +
+      '<button type="button" class="btn quiet" data-act="person-out">Moved out</button></div>';
+  }
+  var backIn = {};
   function numOptions(from, to, sel) {
     var out = '';
     for (var n = from; n <= to; n++) out += '<option value="' + n + '"' + (n === sel ? ' selected' : '') + '>' + n + '</option>';
@@ -1121,13 +1232,19 @@ textarea.copy{min-height:280px;font-size:16px}
   }
   function openSettings() {
     var now = new Date(), wk = weekKey(now), w = week(wk);
+    backIn = {};
+    var gone = S.people.filter(function (p) { return p.gone; });
     var opts = function (sel) {
-      return S.people.map(function (p) { return '<option value="' + p.id + '"' + (p.id === sel ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('');
+      return activePeople().map(function (p) { return '<option value="' + p.id + '"' + (p.id === sel ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('');
     };
     var html = '<form data-form="settings"><h2 id="m-title">Settings</h2><p class="lead">Changes save when you press Save at the bottom.</p>' +
-      '<section class="form-sec"><h3>The house</h3><div class="grid-2">' +
-      S.people.map(function (p, i) { return '<label class="field"><span class="lbl">Person ' + (i + 1) + '</span><input type="text" data-person="' + p.id + '" value="' + esc(p.name) + '" maxlength="20"></label>'; }).join('') +
-      '</div></section>' +
+      '<section class="form-sec"><h3>The house</h3><p class="help">Up to ' + MAX_PEOPLE + ' people. Someone moving in or out changes the rota from next Monday; their history stays.</p>' +
+      '<div id="people-rows">' + activePeople().map(personRowHtml).join('') + '</div>' +
+      '<div class="btn-row"><button type="button" class="btn" data-act="person-add">Add a person</button></div>' +
+      (gone.length ? '<p class="help">Moved out: ' + gone.map(function (p) {
+        return esc(p.name) + ' <button type="button" class="btn quiet" data-act="person-back" data-id="' + p.id + '">Moved back in</button>';
+      }).join(' ') + '</p>' : '') +
+      '</section>' +
       '<section class="form-sec"><h3>Jobs and points</h3><p class="help">After someone logs a job it locks for a while, so nobody can tap it twice in a row.</p>' +
       '<div id="job-rows">' + S.jobs.map(jobRowHtml).join('') + '</div>' +
       '<button type="button" class="btn" data-act="job-add">Add a job</button>' +
@@ -1138,7 +1255,8 @@ textarea.copy{min-height:280px;font-size:16px}
           '<label class="field"><span class="lbl">Its jobs, one per line</span><textarea class="z-items" rows="' + Math.max(3, z.items.length) + '">' +
           esc(z.items.map(function (x) { return x.name; }).join('\n')) + '</textarea></label></div>';
       }).join('') + '</section>' +
-      '<section class="form-sec"><h3>Who has what this week</h3><p class="help">Everyone moves on one zone every Monday, and the captain moves on too.</p><div class="grid-2">' +
+      '<section class="form-sec"><h3>Who has what this week</h3><p class="help">Everyone moves on one zone every Monday, and the captain moves on too.' +
+      (activePeople().length > S.zones.length ? ' With more people than zones, whoever has no zone is captain.' : '') + '</p><div class="grid-2">' +
       S.zones.map(function (z) { return '<label class="field"><span class="lbl">' + esc(z.name) + '</span><select class="assign" data-zone="' + z.id + '">' + opts(w.zones[z.id]) + '</select></label>'; }).join('') +
       '<label class="field"><span class="lbl">Captain</span><select id="cap">' + opts(w.captain) + '</select></label>' +
       '<label class="field"><span class="lbl">Minus for each zone job not done by Sunday night</span><select id="pen">' + numOptions(0, 5, S.penalty) + '</select></label></div></section>' +
@@ -1159,9 +1277,17 @@ textarea.copy{min-height:280px;font-size:16px}
     openModal(html, 'wide', true);
   }
   function saveSettings(form) {
-    var err = [];
-    var names = [].map.call(form.querySelectorAll('[data-person]'), function (i) { return i.value.trim(); });
-    if (names.some(function (n) { return !n; })) err.push('Every person needs a name.');
+    var err = [], keep = [], leaving = {}, seen = {};
+    [].forEach.call(form.querySelectorAll('.person-row'), function (r) {
+      var id = r.getAttribute('data-person-row');
+      if (r.classList.contains('leaving')) { leaving[id] = true; return; }
+      keep.push({ id: id, name: r.querySelector('input').value.trim() });
+    });
+    Object.keys(backIn).forEach(function (id) { keep.push({ id: id, name: person(id).name }); });
+    if (keep.some(function (k) { return !k.name; })) err.push('Every person needs a name.');
+    if (keep.some(function (k) { var n = k.name.toLowerCase(); if (seen[n]) return true; seen[n] = true; return false; })) err.push('Two people have the same name.');
+    if (keep.length < 2) err.push('Keep at least two people.');
+    if (keep.length > MAX_PEOPLE) err.push(MAX_PEOPLE + ' people is the most.');
     var jobs = [].map.call(form.querySelectorAll('.job-row'), function (r) {
       return { id: r.getAttribute('data-job'), name: r.querySelector('.j-name').value.trim(), pts: +r.querySelector('.j-pts').value, lock: +r.querySelector('.j-lock').value };
     }).filter(function (j) { return j.name; });
@@ -1180,21 +1306,31 @@ textarea.copy{min-height:280px;font-size:16px}
     if (zones.some(function (z) { return !z.items.length; })) err.push('Every zone needs at least one job.');
     var assign = {}, used = {};
     [].forEach.call(form.querySelectorAll('.assign'), function (s) { assign[s.getAttribute('data-zone')] = s.value; used[s.value] = true; });
-    if (Object.keys(used).length !== Math.min(S.people.length, zones.length)) err.push('Each person needs a different zone this week.');
+    var peopleChanged = Object.keys(leaving).length || Object.keys(backIn).length || keep.some(function (k) { return !findPerson(k.id); });
+    if (!peopleChanged && Object.keys(used).length !== Math.min(activePeople().length, zones.length)) err.push('Each person needs a different zone this week.');
     if (err.length) { showErr('set-err', err.join(' ')); return; }
 
     var now = new Date(), wk = weekKey(now);
     ensureWeeks(now); // freeze every earlier week before the rota changes
-    S.people.forEach(function (p, i) { p.name = names[i]; });
+    keep.forEach(function (k) {
+      var p = findPerson(k.id);
+      if (p) { p.name = k.name; delete p.gone; } else S.people.push({ id: k.id, name: k.name });
+    });
+    Object.keys(leaving).forEach(function (id) { var p = findPerson(id); if (p) p.gone = true; });
     S.jobs = jobs;
     S.zones = zones;
     S.penalty = +form.querySelector('#pen').value;
     S.dishesPer = +form.querySelector('#dper').value;
-    S.rot = { anchor: wk, zones: S.zones.map(function (z) { return pIndex(assign[z.id]); }), captain: pIndex(form.querySelector('#cap').value) };
-    S.weeks[wk] = computeWeek(wk);
+    if (peopleChanged) {
+      // This week stays as it is; the new line-up starts next Monday.
+      reanchor(wk);
+    } else {
+      S.rot = { anchor: wk, zones: S.zones.map(function (z) { return assign[z.id]; }), captain: form.querySelector('#cap').value };
+      S.weeks[wk] = computeWeek(wk);
+    }
     S.keepAwake = form.querySelector('#awake').checked;
     save(); closeModal(); render(); applyWakeLock();
-    toast('Saved.');
+    toast(peopleChanged ? 'Saved. The new line-up starts next Monday.' : 'Saved.');
   }
   function doBackup() {
     S.lastBackup = new Date().toISOString();
@@ -1253,9 +1389,9 @@ textarea.copy{min-height:280px;font-size:16px}
         if (now < until) { toast(person(last.who).name + ' did this at ' + hhmm(at) + '. It opens again at ' + hhmm(until) + '.'); return; }
       }
       openModal('<h2 id="m-title">Who did it?</h2><p class="lead">' + esc(j.name) + ', +' + plural(j.pts, 'point', 'points') + '</p><div class="pick-grid">' +
-        S.people.map(function (p) {
+        activePeople().map(function (p) {
           return '<button type="button" class="pick" data-act="pick" data-id="' + p.id + '" data-job="' + esc(j.id) + '">' + av(p.id) + '<span>' + esc(p.name) + '</span></button>';
-        }).join('') + '</div><div class="actions"><button type="button" class="btn" data-act="close">Cancel</button></div>');
+        }).join('') + '</div><div class="actions"><button type="button" class="btn" data-act="close">Cancel</button></div>', activePeople().length > 4 ? 'wide' : '');
     },
     pick: function (el, pid) {
       var j = jobById(el.getAttribute('data-job'));
@@ -1293,10 +1429,12 @@ textarea.copy{min-height:280px;font-size:16px}
     },
     'md-give': function () {
       var text = ((document.getElementById('md-text') || {}).value || '').trim();
-      var chip = md.why != null ? REASONS[+md.why] : '';
+      var other = md.why != null && +md.why === OTHER;
+      var chip = md.why != null && !other ? REASONS[+md.why] : '';
       var reason = chip && text ? chip + ': ' + text : (text || chip);
       if (!md.from) { showErr('md-err', 'Pick who is giving it.'); return; }
       if (!md.to) { showErr('md-err', 'Pick who gets it.'); return; }
+      if (other && !text) { showErr('md-err', 'You picked Other, so say what happened.'); return; }
       if (!reason) { showErr('md-err', 'Say why, so everyone knows what it was for.'); return; }
       var now = new Date(), today = dayKey(now);
       var twice = S.entries.some(function (e) { return e.kind === 'minus' && e.from === md.from && e.who === md.to && dayKey(new Date(e.at)) === today; });
@@ -1339,6 +1477,29 @@ textarea.copy{min-height:280px;font-size:16px}
       inputs[inputs.length - 1].focus();
     },
     'job-del': function (el) { var row = el.closest('.job-row'); if (row) row.parentNode.removeChild(row); },
+    'person-add': function () {
+      var box = document.getElementById('people-rows');
+      if (!box) return;
+      var here = box.querySelectorAll('.person-row:not(.leaving)').length + Object.keys(backIn).length;
+      if (here >= MAX_PEOPLE) { toast(MAX_PEOPLE + ' people is the most.'); return; }
+      var used = [].map.call(box.querySelectorAll('.person-row'), function (r) { return r.getAttribute('data-person-row'); });
+      var id = nextPersonId();
+      while (used.indexOf(id) >= 0) id = 'p' + (+id.slice(1) + 1);
+      box.insertAdjacentHTML('beforeend', personRowHtml({ id: id, name: '' }));
+      var inputs = box.querySelectorAll('.person-row input');
+      inputs[inputs.length - 1].focus();
+    },
+    'person-out': function (el) {
+      var row = el.closest('.person-row');
+      if (!row) return;
+      if (!findPerson(row.getAttribute('data-person-row'))) { row.parentNode.removeChild(row); return; }   // added by mistake
+      var out = row.classList.toggle('leaving');
+      el.textContent = out ? 'Undo' : 'Moved out';
+    },
+    'person-back': function (el, id) {
+      if (backIn[id]) { delete backIn[id]; el.textContent = 'Moved back in'; }
+      else { backIn[id] = true; el.textContent = 'Moving back in (undo)'; }
+    },
     fullscreen: function () {
       var d = document.documentElement, fn = d.requestFullscreen || d.webkitRequestFullscreen;
       var nope = function () { toast('This browser will not go full screen. Use Add to Home Screen instead.'); };
@@ -1348,7 +1509,7 @@ textarea.copy{min-height:280px;font-size:16px}
     backup: function () { doBackup(); },
     'restore-yes': function () {
       if (!pendingRestore) return;
-      S = pendingRestore; pendingRestore = null; save(); closeModal(); render(); toast('Backup restored.');
+      S = pendingRestore; pendingRestore = null; migrateLayout(new Date()); save(); closeModal(); render(); toast('Backup restored.');
     },
     'pin-save': function () {
       var a = (document.getElementById('cp1') || {}).value || '', b = (document.getElementById('cp2') || {}).value || '';
@@ -1414,14 +1575,15 @@ textarea.copy{min-height:280px;font-size:16px}
   });
   document.addEventListener('visibilitychange', function () {
     // Re-read from storage only when storage works, or a tablet with blocked storage would lose its points.
-    if (document.visibilityState === 'visible') { if (storageOK) S = load(new Date()); render(); }
+    if (document.visibilityState === 'visible') { if (storageOK) { S = load(new Date()); migrateLayout(new Date()); } render(); }
     applyWakeLock();
   });
-  window.addEventListener('storage', function (e) { if (e.key === KEY && storageOK) { S = load(new Date()); render(); } });
+  window.addEventListener('storage', function (e) { if (e.key === KEY && storageOK) { S = load(new Date()); migrateLayout(new Date()); render(); } });
   // Redraw every minute, so a locked job opens again on its own and the clock stays right.
-  setInterval(function () { if (hhmm(new Date()) !== lastMinute) render(); }, 5000);
+  setInterval(function () { var n = new Date(); if (dayKey(n) + ' ' + hhmm(n) !== lastMinute) render(); }, 5000);
 
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* optional */ }
+  migrateLayout(new Date());
   save();
   render();
   applyWakeLock();
