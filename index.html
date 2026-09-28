@@ -382,7 +382,8 @@ textarea.copy{min-height:280px;font-size:16px}
       jobs: [
         { id: 'j1', name: 'Empty the drying rack', pts: 1, lock: 60 },
         { id: 'j2', name: 'Empty the dishwasher', pts: 2, lock: 60 },
-        { id: 'j3', name: 'Take out the bins', pts: 1, lock: 60 },
+        { id: 'j3', name: 'Change the bin', pts: 1, lock: 60 },
+        { id: 'j8', name: 'Take the bin bag down', pts: 1, lock: 60 },
         { id: 'j4', name: 'Fill the water filter', pts: 1, lock: 60 },
         { id: 'j5', name: 'Clear and wipe the counter', pts: 1, lock: 60 },
         { id: 'j6', name: 'Recycling or glass run', pts: 2, lock: 60 },
@@ -392,7 +393,7 @@ textarea.copy{min-height:280px;font-size:16px}
       // rot.zones[i] = who has zone i in the anchor week; everyone moves on one each Monday.
       // With more people than zones, whoever has no zone that week is captain.
       rot: { anchor: weekKey(now), zones: ['p2', 'p3', 'p4', 'p5'], captain: 'p1' },
-      layout: 3,
+      layout: 4,
       penalty: 1,          // minus for each zone task not ticked by Sunday night
       penMode: 'task',
       dishesPer: 2,        // someone else's dishes: this many for 1 point
@@ -577,8 +578,18 @@ textarea.copy{min-height:280px;font-size:16px}
         if (z.items.map(function (x) { return x.name.trim().toLowerCase(); }).join('|') !== was) return;
         z.items = mergeItems(z.items, now3[1], z.id, 'r');
       });
-      S.jobs.forEach(function (j) { if (j.name === 'Change the bin') j.name = 'Take out the bins'; });
       S.layout = 3; did = true;
+    }
+    if (S.layout < 4) {
+      // 28 Sep: changing the bin (bag tied, left by the door) and taking the bag down on your way out
+      // are two jobs. Boards that had them merged as "Take out the bins" get them split again.
+      S.jobs.forEach(function (j) { if (j.name === 'Take out the bins') j.name = 'Change the bin'; });
+      if (!S.jobs.some(function (j) { return /bag down/i.test(j.name); }) && S.jobs.length < 12) {
+        var bin = S.jobs.filter(function (j) { return j.name === 'Change the bin'; })[0];
+        var down = { id: S.jobs.some(function (j) { return j.id === 'j8'; }) ? 'j' + uid() : 'j8', name: 'Take the bin bag down', pts: 1, lock: 60 };
+        if (bin) S.jobs.splice(S.jobs.indexOf(bin) + 1, 0, down); else S.jobs.push(down);
+      }
+      S.layout = 4; did = true;
     }
     return did;
   }
