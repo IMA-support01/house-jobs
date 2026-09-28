@@ -79,7 +79,7 @@ button,.btn{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;us
   .side{grid-template-columns:minmax(0,1fr)}
 }
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);min-width:0}
-.card-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 14px;margin-bottom:14px}
+.card-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 14px;margin-bottom:14px}
 .card h2{margin:0;font-size:22px;line-height:1.2;font-weight:700}
 .hint{margin:0;color:var(--ink-2);font-size:16px}
 
@@ -96,7 +96,7 @@ button,.btn{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;us
 .job .status svg{flex:none}
 .job.locked{background:transparent;border-style:dashed;border-color:var(--fill-2)}
 .job.locked .name{color:var(--ink-2)}
-.pts{display:inline-block;min-width:48px;text-align:center;padding:3px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-weight:700;font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums;flex:none}
+.pts{display:inline-block;min-width:48px;text-align:center;padding:3px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-weight:700;font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums;flex:none;white-space:nowrap}
 @media (max-width:759px){.job{min-height:104px;padding:14px}.job .name{font-size:19px}.job .head{flex-direction:column;align-items:flex-start;gap:6px}}
 .rules{margin:16px 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:16px;line-height:1.5;color:var(--ink-2)}
 .rules b{color:var(--ink)}
@@ -121,14 +121,19 @@ button,.btn{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;us
 
 /* zones */
 .zone-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-.zone{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"av head act" "av tasks tasks";align-items:center;column-gap:14px;row-gap:6px;padding:14px;border-radius:14px;background:var(--fill)}
+.zone{display:grid;width:100%;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"av head act" "av tasks tasks";align-items:center;column-gap:14px;row-gap:8px;padding:14px;border-radius:14px;background:var(--fill);border:0;text-align:left}
+.zone:active{background:var(--fill-2)}
 .zone.done{background:var(--good-bg)}
 .zone > .av{grid-area:av;align-self:start}
 .zhead{grid-area:head;min-width:0}
 .zact{grid-area:act}
-.zname{font-weight:650;font-size:20px;line-height:1.25}
-.zwho{font-size:17px}
-.ztasks{grid-area:tasks;font-size:16px;color:var(--ink-2);line-height:1.35}
+.zname{display:block;font-weight:650;font-size:20px;line-height:1.25}
+.zwho{display:block;font-size:17px}
+.ztasks{grid-area:tasks}
+.zprog{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:17px;padding:10px 14px;border-radius:12px;background:var(--card);border:1.5px solid var(--ink-3);white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:15px;color:var(--ink-2);line-height:1.4}
+.chip.on{color:var(--good);font-weight:600}
 .state-done{display:flex;align-items:center;gap:8px;color:var(--good);font-weight:650;white-space:nowrap;font-size:18px}
 .state-done small{display:block;color:var(--ink-2);font-weight:400;font-size:15px}
 .late{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px 12px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--bad-bg);margin-bottom:10px}
@@ -180,6 +185,28 @@ button,.btn{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;us
 .pick .av{width:60px;height:60px;font-size:28px}
 .actions{display:flex;justify-content:flex-end;gap:12px;margin-top:20px;flex-wrap:wrap}
 .sticky-actions{position:sticky;bottom:-24px;background:var(--card);padding:14px 0 24px;margin-bottom:-24px;border-top:1px solid var(--line)}
+.q{margin:18px 0 10px;font-weight:650;font-size:18px}
+.q .opt{font-weight:400;color:var(--ink-2)}
+.pill-row{display:flex;flex-wrap:wrap;gap:10px}
+.pill{display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 18px;border-radius:999px;border:1.5px solid var(--line);background:var(--fill);font-weight:650;font-size:18px}
+.pill[aria-pressed="true"]{background:var(--btn);color:var(--btn-ink);border-color:var(--btn)}
+.pill:disabled{opacity:.35;cursor:default}
+.stepper{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.stepper .btn{width:60px;height:60px;padding:0}
+.stepper .num{font-size:40px;font-weight:700;min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+.stepper .eq{font-size:18px;color:var(--ink-2)}
+
+/* zone checklist */
+.check-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.citem{display:flex;align-items:center;gap:14px;width:100%;min-height:64px;padding:12px 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--fill);font-size:20px;font-weight:600;text-align:left}
+.citem .box{width:32px;height:32px;border-radius:8px;border:2px solid var(--ink-3);display:inline-flex;align-items:center;justify-content:center;flex:none;background:var(--card)}
+.citem.on{background:var(--good-bg);border-color:transparent}
+.citem.on .box{background:var(--good);border-color:var(--good);color:var(--card)}
+.citem small{margin-left:auto;font-size:15px;color:var(--ink-2);font-weight:400;white-space:nowrap}
+.citem:disabled{cursor:default}
+.zline{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.pbar{flex:1;height:12px;background:var(--fill);border-radius:6px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--good)}
 
 /* week sum-up */
 .sum-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px 16px}
@@ -193,6 +220,7 @@ button,.btn{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;us
 .sum-zones{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .sum-zones li{display:flex;align-items:center;gap:12px;font-size:17px;flex-wrap:wrap}
 .sum-zones .muted{color:var(--ink-2)}
+.sum-zones .missed{flex-basis:100%;margin:-4px 0 0 56px;font-size:15px;color:var(--ink-2)}
 .zstate{margin-left:auto;font-weight:650;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
 .zstate.ok{color:var(--good)}
 .zstate.bad{color:var(--bad)}
@@ -219,15 +247,17 @@ button,.btn{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;us
 .form-sec h3{margin:0 0 4px;font-size:19px}
 .form-sec .help{margin:0 0 12px;color:var(--ink-2);font-size:16px}
 .field{display:grid;gap:4px;margin-bottom:10px;min-width:0}
+.field.mt{margin-top:14px}
 .field .lbl{font-size:15px;color:var(--ink-2);font-weight:600}
 input[type=text],input[type=password],select,textarea{min-height:50px;padding:8px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);width:100%}
-textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
+textarea{line-height:1.45;resize:vertical}
+textarea.copy{min-height:280px;font-size:16px}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
 .row{display:grid;gap:0 10px;align-items:end}
 .job-row{grid-template-columns:minmax(0,1fr) 96px 130px auto}
 .job-row .btn.quiet{margin-bottom:12px}
 .job-row + .job-row .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.zone-row{grid-template-columns:minmax(0,220px) minmax(0,1fr)}
+.zone-row{grid-template-columns:minmax(0,220px) minmax(0,1fr);align-items:start}
 .check{display:flex;align-items:center;gap:12px;min-height:50px;font-weight:600}
 .check input{width:24px;height:24px}
 .error{color:var(--bad);font-weight:600;margin:10px 0 0}
@@ -239,6 +269,7 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
   .pick .av{width:52px;height:52px;font-size:24px}
   .clock{font-size:30px}
   .qr{width:240px;height:240px}
+  .sum-zones .missed{margin-left:0}
 }
 
 /* toast */
@@ -262,6 +293,9 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
   var GRACE_HOUR = 10;             // last week's zones can still be ticked until Monday 10:00
   var PIN_OPEN_MS = 5 * 60 * 1000; // PIN stays open this long after it is typed
   var KEEP_DAYS = 400;
+  var DISH = 'dishes';
+  var DISH_NAME = 'Wash others’ dishes';
+  var REASONS = ['Left dishes', 'Left stuff out', 'Didn’t bin it', 'Mess in the kitchen'];
 
   /* ---------- dates, all in the tablet's local time ---------- */
   function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -297,6 +331,7 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
   function fmtPts(n) { return n < 0 ? '-' + Math.abs(n) : String(n); }
 
   /* ---------- state ---------- */
+  function mkItems(zid, names) { return names.map(function (n, i) { return { id: zid + 't' + (i + 1), name: n }; }); }
   function freshState(now) {
     return {
       v: 1,
@@ -316,19 +351,22 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
         { id: 'j7', name: 'Hoover the kitchen or hall', pts: 1, lock: 60 }
       ],
       zones: [
-        { id: 'z1', name: 'Kitchen', tasks: 'Hob, oven front, fridge clear-out, sink, mop the floor' },
-        { id: 'z2', name: 'Bathrooms', tasks: 'Toilets, showers, sinks, mirrors, mop the floors' },
-        { id: 'z3', name: 'Living room and hall', tasks: 'Hoover, stairs, dust, tidy the sofa' },
-        { id: 'z4', name: 'Bins, laundry, outside', tasks: 'Wheelie bins out and back, laundry room, front door' }
+        { id: 'z1', name: 'Kitchen', items: mkItems('z1', ['Hob', 'Oven front', 'Fridge clear-out', 'Sink', 'Mop the floor']) },
+        { id: 'z2', name: 'Bathrooms', items: mkItems('z2', ['Toilets', 'Showers', 'Sinks', 'Mirrors', 'Mop the floors']) },
+        { id: 'z3', name: 'Living room and hall', items: mkItems('z3', ['Hoover', 'Stairs', 'Dust', 'Tidy the sofa']) },
+        { id: 'z4', name: 'Bins, laundry, outside', items: mkItems('z4', ['Wheelie bins out and back', 'Laundry room', 'Front door']) }
       ],
       // rot.zones[i] = index of the person who has zone i in the anchor week; everyone moves on one each Monday
       rot: { anchor: weekKey(now), zones: [1, 2, 3, 0], captain: 0 },
-      penalty: 5,
+      penalty: 1,          // minus for each zone task not ticked by Sunday night
+      penMode: 'task',
+      dishesPer: 2,        // someone else's dishes: this many for 1 point
       start: dayKey(now),
-      entries: [],   // { id, kind:'job', job, jobName, pts, who, at }
-      ticks: {},     // ticks[week][zoneId] = { who, at, late }
-      excused: {},   // excused[week][zoneId] = at   (a minus that was removed)
-      weeks: {},     // weeks[week] = { zones:{zoneId:personId}, captain, pen }  frozen once seen
+      entries: [],         // { id, kind:'job'|'minus', ... who, pts, at }
+      ticks: {},           // ticks[week][zoneId] = { who, at, late }   the whole zone is done
+      itemTicks: {},       // itemTicks[week][zoneId][itemId] = { at }  one task on the list is done
+      excused: {},         // excused[week][zoneId] = at               a zone minus that was removed
+      weeks: {},           // weeks[week] = { zones, captain, pen, mode, res }  frozen once seen, res once closed
       pin: null,
       keepAwake: false,
       lastBackup: null
@@ -336,12 +374,30 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
   }
   function valid(s) {
     return !!(s && s.v === 1 && Array.isArray(s.people) && s.people.length === 4 && Array.isArray(s.jobs) &&
-      Array.isArray(s.zones) && s.zones.length === 4 && s.rot && Array.isArray(s.rot.zones) && Array.isArray(s.entries) &&
+      Array.isArray(s.zones) && s.zones.length >= 1 && s.rot && Array.isArray(s.rot.zones) && Array.isArray(s.entries) &&
       typeof s.start === 'string');
   }
   function upgrade(s) {
-    s.ticks = s.ticks || {}; s.excused = s.excused || {}; s.weeks = s.weeks || {};
-    if (typeof s.penalty !== 'number') s.penalty = 5;
+    s.ticks = s.ticks || {}; s.excused = s.excused || {}; s.weeks = s.weeks || {}; s.itemTicks = s.itemTicks || {};
+    if (typeof s.dishesPer !== 'number') s.dishesPer = 2;
+    s.zones.forEach(function (z) {
+      if (!Array.isArray(z.items)) {
+        z.items = String(z.tasks || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean)
+          .map(function (n, i) { return { id: z.id + 't' + (i + 1), name: n.charAt(0).toUpperCase() + n.slice(1) }; });
+      }
+      delete z.tasks;
+    });
+    if (s.penMode !== 'task') {
+      // Boards from before the tick lists charged 5 for a whole zone. Now each task left costs 1.
+      // Weeks that already closed keep the rule they were played under.
+      var now = new Date();
+      s.penMode = 'task'; s.penalty = 1;
+      Object.keys(s.weeks).forEach(function (wk) {
+        var w = s.weeks[wk];
+        if (!w.mode && now < lastChance(wk)) { w.pen = 1; w.mode = 'task'; }
+      });
+    }
+    if (typeof s.penalty !== 'number') s.penalty = 1;
     return s;
   }
 
@@ -365,7 +421,7 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
   function person(id) { for (var i = 0; i < S.people.length; i++) if (S.people[i].id === id) return S.people[i]; return { id: id, name: '?' }; }
   function pIndex(id) { for (var i = 0; i < S.people.length; i++) if (S.people[i].id === id) return i; return 0; }
   function jobById(id) { for (var i = 0; i < S.jobs.length; i++) if (S.jobs[i].id === id) return S.jobs[i]; return null; }
-  function zoneById(id) { for (var i = 0; i < S.zones.length; i++) if (S.zones[i].id === id) return S.zones[i]; return { id: id, name: 'Zone' }; }
+  function zoneById(id) { for (var i = 0; i < S.zones.length; i++) if (S.zones[i].id === id) return S.zones[i]; return { id: id, name: 'Zone', items: [] }; }
   function entryById(id) { for (var i = 0; i < S.entries.length; i++) if (S.entries[i].id === id) return S.entries[i]; return null; }
   function lastFor(jobId) {
     for (var i = S.entries.length - 1; i >= 0; i--) { var e = S.entries[i]; if (e.kind === 'job' && e.job === jobId) return e; }
@@ -380,13 +436,17 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
     var n = ps.map(function (p) { return p.name; });
     return n.length <= 1 ? n.join('') : n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1];
   }
+  function possessive(name) { return name + '’s'; }
+  function dishPoints(n) { return Math.ceil(n / S.dishesPer); }
+  function perText() { return S.dishesPer === 1 ? '1 point for each dish' : '1 point for every ' + S.dishesPer + ' dishes'; }
+  function perBadge() { return S.dishesPer === 1 ? '+1 each' : '+1 per ' + S.dishesPer; }
 
   /* ---------- weeks, zones and the rota ---------- */
   function firstWeek() { return weekKey(fromKey(S.start)); }
   function computeWeek(wk) {
     var k = weeksBetween(S.rot.anchor, wk), n = S.people.length, z = {};
-    S.zones.forEach(function (zone, i) { z[zone.id] = S.people[mod(S.rot.zones[i] + k, n)].id; });
-    return { zones: z, captain: S.people[mod(S.rot.captain + k, n)].id, pen: S.penalty };
+    S.zones.forEach(function (zone, i) { z[zone.id] = S.people[mod((S.rot.zones[i] || 0) + k, n)].id; });
+    return { zones: z, captain: S.people[mod(S.rot.captain + k, n)].id, pen: S.penalty, mode: 'task' };
   }
   // Freeze each week's rota the first time it is seen, so changing the rota later never rewrites history.
   function ensureWeeks(now) {
@@ -398,26 +458,80 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
     return changed;
   }
   function week(wk) { return S.weeks[wk] || computeWeek(wk); }
-  function isTicked(wk, zid) { return !!((S.ticks[wk] || {})[zid]); }
   function isExcused(wk, zid) { return !!((S.excused[wk] || {})[zid]); }
 
-  // A zone not ticked by Sunday night (with a last chance until Monday 10:00) costs its owner the penalty.
+  // How far a zone's tick list has got. A zone ticked as a whole (older boards) counts every task as done.
+  function zoneStatus(wk, z) {
+    var zt = (S.ticks[wk] || {})[z.id], it = (S.itemTicks[wk] || {})[z.id] || {}, doneAt = {}, done = 0;
+    z.items.forEach(function (x) {
+      if (it[x.id] || zt) { doneAt[x.id] = it[x.id] ? it[x.id].at : zt.at; done++; }
+    });
+    return { total: z.items.length, done: done, complete: !!zt, zt: zt, doneAt: doneAt };
+  }
+  // This week's list can always be ticked; last week's only until its last chance on Monday morning.
+  function canTick(wk, now) {
+    var cur = weekKey(now);
+    if (wk < firstWeek()) return false;
+    return wk === cur || (wk === prevWeek(cur) && now < lastChance(wk));
+  }
+  function toggleItem(wk, zid, itemId) {
+    var z = zoneById(zid), now = new Date();
+    S.itemTicks[wk] = S.itemTicks[wk] || {};
+    var it = S.itemTicks[wk][zid] = S.itemTicks[wk][zid] || {};
+    var zt = (S.ticks[wk] || {})[zid];
+    if (zt) {
+      // Spell out every task of a zone ticked as a whole before changing one of them.
+      z.items.forEach(function (x) { if (!it[x.id]) it[x.id] = { at: zt.at }; });
+      delete S.ticks[wk][zid];
+    }
+    if (it[itemId]) delete it[itemId]; else it[itemId] = { at: now.toISOString() };
+    var after = zoneStatus(wk, z), finished = false;
+    if (after.total && after.done === after.total) {
+      S.ticks[wk] = S.ticks[wk] || {};
+      S.ticks[wk][zid] = { who: week(wk).zones[zid], at: now.toISOString(), late: now >= weekEnd(wk) };
+      finished = true;
+    }
+    save();
+    return finished;
+  }
+  // Once a week's last chance has passed, write down which tasks were missed so later edits never change it.
+  function closeWeeks(now) {
+    var changed = false, first = firstWeek();
+    Object.keys(S.weeks).forEach(function (wk) {
+      var w = S.weeks[wk];
+      if (w.res || wk < first || now < lastChance(wk)) return;
+      var res = {};
+      S.zones.forEach(function (z) {
+        var st = zoneStatus(wk, z);
+        if (st.complete) return;
+        res[z.id] = w.mode === 'task'
+          ? z.items.filter(function (x) { return !st.doneAt[x.id]; }).map(function (x) { return x.name; })
+          : ['the whole zone'];
+      });
+      w.res = res; changed = true;
+    });
+    return changed;
+  }
+  function missPts(w, missed) { return w.mode === 'task' ? w.pen * missed.length : w.pen; }
   function misses(now) {
     var out = [], first = firstWeek();
     Object.keys(S.weeks).forEach(function (wk) {
-      if (wk < first || now < lastChance(wk)) return;
       var w = S.weeks[wk];
-      S.zones.forEach(function (zone) {
-        if (isTicked(wk, zone.id) || isExcused(wk, zone.id)) return;
-        var who = w.zones[zone.id];
-        if (!who || !w.pen) return;
-        out.push({ id: 'miss|' + wk + '|' + zone.id, kind: 'miss', wk: wk, zone: zone.id, who: who, pts: -w.pen,
+      if (wk < first || !w.res) return;
+      Object.keys(w.res).forEach(function (zid) {
+        if (isExcused(wk, zid)) return;
+        var who = w.zones[zid], pts = missPts(w, w.res[zid]);
+        if (!who || !pts) return;
+        out.push({ id: 'miss|' + wk + '|' + zid, kind: 'miss', wk: wk, zone: zid, who: who, pts: -pts, missed: w.res[zid],
           at: new Date(weekEnd(wk).getTime() - 60000).toISOString() });
       });
     });
     return out;
   }
-  function scored(now) { return S.entries.concat(misses(now)); }
+  function scored(now) {
+    if (closeWeeks(now)) save();
+    return S.entries.concat(misses(now));
+  }
   function sumBetween(items, from, to) {
     var t = {};
     S.people.forEach(function (p) { t[p.id] = 0; });
@@ -447,27 +561,36 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
 
   /* ---------- one week, added up ---------- */
   function weekData(wk, now) {
-    var ws = fromKey(wk), we = weekEnd(wk), lc = lastChance(wk), w = week(wk), rows = {};
-    S.people.forEach(function (p) { rows[p.id] = { p: p, jobs: 0, jobPts: 0, minus: 0, by: {} }; });
+    if (closeWeeks(now)) save();
+    var ws = fromKey(wk), we = weekEnd(wk), lc = lastChance(wk), w = week(wk), rows = {}, minuses = [], owners = {};
+    S.people.forEach(function (p) { rows[p.id] = { p: p, jobs: 0, jobPts: 0, minus: 0, by: {}, dishes: 0 }; });
     S.entries.forEach(function (e) {
       var at = new Date(e.at);
-      if (e.kind !== 'job' || at < ws || at >= we || !rows[e.who]) return;
+      if (at < ws || at >= we || !rows[e.who]) return;
       var r = rows[e.who];
-      r.jobs += 1; r.jobPts += e.pts; r.by[e.jobName] = (r.by[e.jobName] || 0) + 1;
+      if (e.kind === 'job') {
+        r.jobs += 1; r.jobPts += e.pts;
+        if (e.job === DISH) { r.dishes += e.count || 0; if (e.owner) owners[e.owner] = (owners[e.owner] || 0) + (e.count || 0); }
+        else r.by[e.jobName] = (r.by[e.jobName] || 0) + 1;
+      } else if (e.kind === 'minus') {
+        r.minus += -e.pts; minuses.push(e);
+      }
     });
     var zones = S.zones.map(function (z) {
-      var t = (S.ticks[wk] || {})[z.id], who = w.zones[z.id], state;
-      if (t) state = t.late ? 'late' : 'done';
+      var st = zoneStatus(wk, z), who = w.zones[z.id], state, missed = [];
+      if (st.complete) state = st.zt.late ? 'late' : 'done';
       else if (isExcused(wk, z.id)) state = 'excused';
-      else if (now < we) state = 'open';
+      else if (now < we) state = st.done ? 'partial' : 'open';
       else if (now < lc) state = 'grace';
-      else state = 'missed';
-      if (state === 'missed' && w.pen && rows[who]) rows[who].minus += w.pen;
-      return { z: z, who: who, state: state, t: t };
+      else { state = 'missed'; missed = (w.res && w.res[z.id]) || []; }
+      var pen = state === 'missed' ? missPts(w, missed) : 0;
+      if (pen && rows[who]) rows[who].minus += pen;
+      return { z: z, who: who, state: state, st: st, missed: missed, pen: pen };
     });
     var list = S.people.map(function (p) { var r = rows[p.id]; r.total = r.jobPts - r.minus; return r; })
       .sort(function (a, b) { return (b.total - a.total) || (b.jobs - a.jobs) || (pIndex(a.p.id) - pIndex(b.p.id)); });
-    return { wk: wk, ws: ws, captain: w.captain, pen: w.pen, zones: zones, list: list, current: wk === weekKey(now) };
+    minuses.sort(function (a, b) { return a.at < b.at ? -1 : 1; });
+    return { wk: wk, ws: ws, captain: w.captain, pen: w.pen, mode: w.mode, zones: zones, list: list, minuses: minuses, owners: owners, current: wk === weekKey(now) };
   }
   function monthLine(now) {
     var mt = sumBetween(scored(now), monthStart(now), addMonths(now, 1)), cf = countingFrom(), bot = bottomOf(mt);
@@ -478,17 +601,17 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
       bottom: now < cf || bot.length === S.people.length ? [] : bot
     };
   }
-  // The text that goes to the WhatsApp group.
-  function sumText(wk, now) {
+  // The text that goes to the WhatsApp group. The short one keeps the QR code easy to scan.
+  function sumText(wk, now, short) {
     var d = weekData(wk, now), L = [];
     L.push('House jobs, week of ' + fmtDMShort.format(d.ws) + (d.current ? ' (so far)' : ''));
     L.push('Captain: ' + person(d.captain).name, '', 'Zones');
     d.zones.forEach(function (x) {
-      var n = person(x.who).name;
-      if (x.state === 'done' || x.state === 'late') L.push('✅ ' + x.z.name + ': ' + n);
-      else if (x.state === 'missed') L.push('❌ ' + x.z.name + ': ' + n + ' (missed' + (d.pen ? ', minus ' + d.pen : '') + ')');
-      else if (x.state === 'excused') L.push('⬜ ' + x.z.name + ': ' + n + ' (let off)');
-      else L.push('⬜ ' + x.z.name + ': ' + n + ' (not done yet)');
+      var n = x.z.name + ': ' + person(x.who).name;
+      if (x.state === 'done' || x.state === 'late') L.push('✅ ' + n);
+      else if (x.state === 'missed') L.push('❌ ' + n + ' (' + (d.mode === 'task' ? plural(x.missed.length, 'task', 'tasks') + ' missed, ' : 'missed, ') + 'minus ' + x.pen + ')');
+      else if (x.state === 'excused') L.push('⬜ ' + n + ' (let off)');
+      else L.push('⬜ ' + n + ' (' + x.st.done + ' of ' + x.st.total + ' done)');
     });
     L.push('', 'Points');
     d.list.forEach(function (r) {
@@ -497,20 +620,38 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
       if (r.minus) extra.push('minus ' + r.minus);
       L.push(r.p.name + ' ' + fmtPts(r.total) + (extra.length ? ' (' + extra.join(', ') + ')' : ''));
     });
-    var m = monthLine(now);
-    L.push('', fmtMonth.format(now) + ' so far: ' + byPoints(m.totals).map(function (p) { return p.name + ' ' + fmtPts(m.totals[p.id]); }).join(', '));
-    L.push(m.note);
+    if (d.minuses.length) {
+      L.push('', 'Minuses');
+      d.minuses.forEach(function (e) { L.push(person(e.from).name + ' to ' + person(e.who).name + ': ' + e.reason); });
+    }
+    if (!short) {
+      var ow = Object.keys(d.owners);
+      if (ow.length) {
+        L.push('', 'Dishes left for others: ' + ow.sort(function (a, b) { return d.owners[b] - d.owners[a]; })
+          .map(function (id) { return person(id).name + ' ' + d.owners[id]; }).join(', '));
+      }
+      var m = monthLine(now);
+      L.push('', fmtMonth.format(now) + ' so far: ' + byPoints(m.totals).map(function (p) { return p.name + ' ' + fmtPts(m.totals[p.id]); }).join(', '));
+      L.push(m.note);
+    }
     return L.join('\n');
   }
   function waLink(text) { return 'https://wa.me/?text=' + encodeURIComponent(text); }
+  function waLinkFor(wk, now) {
+    var link = waLink(sumText(wk, now));
+    return link.length > 1400 ? waLink(sumText(wk, now, true)) : link;
+  }
 
   /* ---------- icons ---------- */
   var I = {
     gear: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
     check: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
+    checkSm: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
     lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
     list: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>',
-    alert: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>'
+    alert: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>',
+    minus: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>',
+    plus: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>'
   };
 
   /* ---------- the board ---------- */
@@ -521,6 +662,7 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
     var now = new Date();
     var changed = ensureWeeks(now);
     if (prune(now)) changed = true;
+    if (closeWeeks(now)) changed = true;
     if (changed) save();
     var wk = weekKey(now), items = scored(now);
     app.innerHTML =
@@ -555,6 +697,13 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
         '<span class="head"><span class="name">' + esc(j.name) + '</span><span class="pts">+' + j.pts + '</span></span>' +
         '<span class="status">' + foot + '</span></button>';
     }).join('');
+    var dl = lastFor(DISH), dfoot = '';
+    if (dl && dayKey(new Date(dl.at)) === dayKey(now)) {
+      dfoot = '<span>Last: ' + esc(person(dl.who).name) + ', ' + plural(dl.count || 0, 'dish', 'dishes') + ', ' + hhmm(new Date(dl.at)) + '</span>';
+    }
+    tiles += '<button type="button" class="job" data-act="dishes" aria-label="' + esc(DISH_NAME + ', ' + perText()) + '">' +
+      '<span class="head"><span class="name">' + esc(DISH_NAME) + '</span><span class="pts">' + perBadge() + '</span></span>' +
+      '<span class="status">' + dfoot + '</span></button>';
     return '<section class="card jobs" aria-labelledby="h-jobs"><div class="card-head"><h2 id="h-jobs">Did a job? Tap it</h2>' +
       '<p class="hint">Every job is its own point</p></div><div class="job-grid">' + tiles + '</div>' + renderRules() + '</section>';
   }
@@ -564,30 +713,35 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
     var pw = prevWeek(wk), first = firstWeek(), hasLast = pw >= first;
     if (hasLast && S.weeks[pw] && now < lastChance(pw)) {
       S.zones.forEach(function (z) {
-        if (isTicked(pw, z.id) || isExcused(pw, z.id)) return;
-        var who = S.weeks[pw].zones[z.id];
-        late += '<div class="late"><p>' + I.alert + '<span><b>Last week’s ' + esc(z.name) + '</b> (' + esc(person(who).name) +
-          ') is not ticked. Last chance ' + pad(GRACE_HOUR) + ':00, or minus ' + S.weeks[pw].pen + '.</span></p>' +
-          '<button type="button" class="btn sm" data-act="late" data-wk="' + pw + '" data-id="' + z.id + '">It was done</button></div>';
+        var st = zoneStatus(pw, z), w0 = S.weeks[pw];
+        if (st.complete || isExcused(pw, z.id)) return;
+        var who = w0.zones[z.id], left = z.items.filter(function (x) { return !st.doneAt[x.id]; });
+        late += '<div class="late"><p>' + I.alert + '<span><b>Last week’s ' + esc(z.name) + '</b> (' + esc(person(who).name) + '): ' +
+          st.done + ' of ' + st.total + ' done. Last chance ' + pad(GRACE_HOUR) + ':00, or minus ' + missPts(w0, left) + '.</span></p>' +
+          '<button type="button" class="btn sm" data-act="zone" data-wk="' + pw + '" data-id="' + z.id + '">Open last week’s list</button></div>';
       });
     }
     var rows = S.zones.map(function (z) {
-      var who = w.zones[z.id], t = (S.ticks[wk] || {})[z.id], right;
-      if (t) {
-        var at = new Date(t.at);
-        right = '<div class="zact state-done">' + I.check + '<span>Done<small>' + esc(fmtWeekday.format(at)) + ' ' + hhmm(at) + '</small></span>' +
-          (now - at < UNDO_MS ? '<button type="button" class="btn quiet" data-act="untick" data-wk="' + wk + '" data-id="' + z.id + '">Undo</button>' : '') + '</div>';
+      var who = w.zones[z.id], st = zoneStatus(wk, z), right;
+      if (st.complete) {
+        var at = new Date(st.zt.at);
+        right = '<span class="zact state-done">' + I.check + '<span>Done<small>' + esc(fmtWeekday.format(at)) + ' ' + hhmm(at) + '</small></span></span>';
       } else {
-        right = '<button type="button" class="btn sm zact" data-act="tick" data-id="' + z.id + '" aria-label="Mark ' + esc(z.name) + ' done">Mark done</button>';
+        right = '<span class="zact zprog">' + I.list + st.done + ' of ' + st.total + '</span>';
       }
-      return '<li class="zone' + (t ? ' done' : '') + '">' + av(who) +
-        '<div class="zhead"><div class="zname">' + esc(z.name) + '</div><div class="zwho">' + esc(person(who).name) + '</div></div>' +
-        right + '<div class="ztasks">' + esc(z.tasks) + '</div></li>';
+      var chips = z.items.map(function (x) {
+        var on = !!st.doneAt[x.id];
+        return '<span class="chip' + (on ? ' on' : '') + '">' + (on ? I.checkSm : '') + esc(x.name) + '</span>';
+      }).join('');
+      var label = z.name + ', ' + person(who).name + ', ' + st.done + ' of ' + st.total + ' done. Open the list';
+      return '<li><button type="button" class="zone' + (st.complete ? ' done' : '') + '" data-act="zone" data-wk="' + wk + '" data-id="' + z.id + '" aria-label="' + esc(label) + '">' +
+        av(who) + '<span class="zhead"><span class="zname">' + esc(z.name) + '</span><span class="zwho">' + esc(person(who).name) + '</span></span>' +
+        right + '<span class="ztasks chips">' + chips + '</span></button></li>';
     }).join('');
     var day = now.getDay(), monday = day === 1 && hasLast;
     var nudge = day === 0 ? 'Sunday: check the zones, then sum up the week' : monday ? 'Monday: see how last week went' : '';
     return '<section class="card zones" aria-labelledby="h-zones"><div class="card-head"><h2 id="h-zones">This week’s zones</h2>' +
-      '<p class="hint">Due Sunday night</p></div>' +
+      '<p class="hint">Tap a zone to tick its jobs. Due Sunday night</p></div>' +
       '<div class="captain">' + av(w.captain) + '<div class="grow"><div class="label">Captain</div>' +
       '<div class="cname">' + esc(person(w.captain).name) + '</div>' + (nudge ? '<div class="nudge">' + nudge + '</div>' : '') + '</div>' +
       '<button type="button" class="btn primary sm" data-act="sumup">' + I.list + (monday ? 'Last week’s sum-up' : 'Sum up the week') + '</button></div>' +
@@ -625,7 +779,8 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
         ? 'everyone finished level, so you all split the supplies for ' + esc(monthName) + '.'
         : '<b>' + esc(namesList(pb)) + '</b> ' + (pb.length > 1 ? 'split' : 'buys') + ' the supplies for ' + esc(monthName) + '.') + '</p>';
     }
-    return '<section class="card points" aria-labelledby="h-points"><div class="card-head"><h2 id="h-points">Points</h2></div>' +
+    return '<section class="card points" aria-labelledby="h-points"><div class="card-head"><h2 id="h-points">Points</h2>' +
+      '<button type="button" class="btn sm" data-act="minus">Give a minus</button></div>' +
       '<table class="ptable"><thead><tr><th scope="col">Who</th><th scope="col"><span class="sr-only">Share of the month</span></th>' +
       '<th scope="col">This week</th><th scope="col">' + esc(monthName) + '</th></tr></thead><tbody>' + rows + '</tbody></table>' + notes + '</section>';
   }
@@ -659,19 +814,30 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
 
   function feedRow(e, now, inLog) {
     var at = new Date(e.at), name = esc(person(e.who).name), what, gain, cls = '';
-    if (e.kind === 'job') { what = '<b>' + name + '</b> <span>' + esc(e.jobName) + '</span>'; gain = '+' + e.pts; }
+    if (e.kind === 'job' && e.job === DISH) {
+      what = '<b>' + name + '</b> <span>washed ' + (e.owner ? e.count + ' of ' + esc(possessive(person(e.owner).name)) + ' dishes' : plural(e.count || 0, 'dish', 'dishes') + ' for someone else') + '</span>';
+      gain = '+' + e.pts;
+    } else if (e.kind === 'job') { what = '<b>' + name + '</b> <span>' + esc(e.jobName) + '</span>'; gain = '+' + e.pts; }
+    else if (e.kind === 'minus') {
+      what = '<b>' + esc(person(e.from).name) + '</b> <span>gave</span> <b>' + name + '</b> <span>a minus: ' + esc(e.reason) + '</span>';
+      gain = fmtPts(e.pts); cls = ' neg';
+    }
     else if (e.kind === 'tick') { what = '<b>' + name + '</b> <span>' + esc(zoneById(e.zone).name) + ' zone done' + (e.late ? ' (last week)' : '') + '</span>'; gain = I.check; cls = ' ok'; }
-    else { what = '<b>' + name + '</b> <span>' + esc(zoneById(e.zone).name) + ' not ticked</span>'; gain = fmtPts(e.pts); cls = ' neg'; }
+    else {
+      what = '<b>' + name + '</b> <span>' + esc(zoneById(e.zone).name) + ': ' + (e.missed && e.missed[0] !== 'the whole zone' ? 'missed ' + esc(e.missed.join(', ')) : 'not done') + '</span>';
+      gain = fmtPts(e.pts); cls = ' neg';
+    }
     var extra = '';
-    if (inLog) extra = '<button type="button" class="btn quiet" data-act="remove" data-id="' + esc(e.kind === 'job' ? 'job|' + e.id : e.id) + '">Remove</button>';
-    else if (e.kind === 'job' && now - at < UNDO_MS) extra = '<button type="button" class="btn quiet" data-act="undo" data-id="' + esc(e.id) + '">Undo</button>';
+    if (inLog) extra = '<button type="button" class="btn quiet" data-act="remove" data-id="' + esc(e.kind === 'job' || e.kind === 'minus' ? 'e|' + e.id : e.id) + '">Remove</button>';
+    else if ((e.kind === 'job' || e.kind === 'minus') && now - at < UNDO_MS) extra = '<button type="button" class="btn quiet" data-act="undo" data-id="' + esc(e.id) + '">Undo</button>';
     return '<li><time datetime="' + esc(e.at) + '">' + hhmm(at) + '</time>' + dot(e.who) + '<span class="what">' + what + '</span>' +
       '<span class="gain' + cls + '">' + gain + '</span>' + extra + '</li>';
   }
 
   function renderRules() {
-    return '<p class="rules"><b>House rules:</b> Finished it? Bin it. Your dishes done the same day. Stuff left out goes in the basket. ' +
-      'Zones done by Sunday night, or minus ' + S.penalty + '. Bottom of the month buys the cleaning supplies.</p>';
+    return '<p class="rules"><b>House rules:</b> Finished it? Bin it. Your own dishes done the same day. Stuff left out goes in the basket. ' +
+      'Every zone task not ticked by Sunday night is minus ' + S.penalty + '. Anyone can give a minus, with a reason, and everyone sees who gave it. ' +
+      'Bottom of the month buys the cleaning supplies.</p>';
   }
 
   /* ---------- dialogs and messages ---------- */
@@ -700,6 +866,73 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
     toastTimer = setTimeout(hideToast, action ? 8000 : 4500);
   }
   function hideToast() { toastEl.classList.remove('show'); }
+  function setPressed(grp, value) {
+    [].forEach.call(modalRoot.querySelectorAll('.pill[data-grp="' + grp + '"]'), function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-id') === value ? 'true' : 'false');
+    });
+  }
+
+  /* ---------- a zone's tick list ---------- */
+  function openZone(wk, zid) {
+    var now = new Date(), z = zoneById(zid), w = week(wk), who = w.zones[zid], st = zoneStatus(wk, z), editable = canTick(wk, now);
+    var cur = wk === weekKey(now);
+    var lead = !editable ? 'This week is closed, so the list can’t change now.'
+      : cur ? possessive(esc(person(who).name)) + ' zone this week. Tick each job as you do it, any day before Sunday night.'
+      : 'Last week’s list for ' + esc(person(who).name) + '. Last chance until ' + pad(GRACE_HOUR) + ':00 today.';
+    var rows = z.items.map(function (x) {
+      var on = st.doneAt[x.id];
+      return '<li><button type="button" class="citem' + (on ? ' on' : '') + '" data-act="item" data-wk="' + wk + '" data-zone="' + zid + '" data-id="' + x.id + '" aria-pressed="' + (on ? 'true' : 'false') + '"' + (editable ? '' : ' disabled') + '>' +
+        '<span class="box">' + (on ? I.check : '') + '</span><span>' + esc(x.name) + '</span>' +
+        (on ? '<small>' + esc(fmtWeekday.format(new Date(on))) + ' ' + hhmm(new Date(on)) + '</small>' : '') + '</button></li>';
+    }).join('');
+    var pct = st.total ? Math.round(st.done / st.total * 100) : 0;
+    openModal('<h2 id="m-title">' + esc(z.name) + '</h2><p class="lead">' + lead + '</p>' +
+      '<div class="zline"><b>' + (st.complete ? 'All done' : st.done + ' of ' + st.total + ' done') + '</b><div class="pbar"><i style="width:' + pct + '%"></i></div></div>' +
+      '<ul class="check-list">' + rows + '</ul>' +
+      '<div class="actions"><button type="button" class="btn primary" data-act="close">Close</button></div>');
+  }
+
+  /* ---------- giving a minus ---------- */
+  var md = null;
+  function openMinus() {
+    md = { from: null, to: null, why: null };
+    var ppl = function (grp) {
+      return S.people.map(function (p) {
+        return '<button type="button" class="pill" data-act="md" data-grp="' + grp + '" data-id="' + p.id + '" aria-pressed="false">' + dot(p.id) + esc(p.name) + '</button>';
+      }).join('');
+    };
+    openModal('<h2 id="m-title">Give a minus</h2><p class="lead">For something left too long. Everyone sees who gave it and why, so keep it fair. ' +
+      'Take a photo on your phone if you think there will be an argument.</p>' +
+      '<p class="q">Who is giving it?</p><div class="pill-row">' + ppl('from') + '</div>' +
+      '<p class="q">Who gets it?</p><div class="pill-row">' + ppl('to') + '</div>' +
+      '<p class="q">Why?</p><div class="pill-row">' + REASONS.map(function (r, i) {
+        return '<button type="button" class="pill" data-act="md" data-grp="why" data-id="' + i + '" aria-pressed="false">' + esc(r) + '</button>';
+      }).join('') + '</div>' +
+      '<label class="field mt"><span class="lbl">Say what happened (you can add this to a reason above)</span><input type="text" id="md-text" maxlength="80" placeholder="Pan left on the hob since Friday"></label>' +
+      '<p class="error" id="md-err" hidden></p>' +
+      '<div class="actions"><button type="button" class="btn" data-act="close">Cancel</button><button type="button" class="btn primary" data-act="md-give">Give minus 1</button></div>', 'wide');
+  }
+
+  /* ---------- washing someone else's dishes ---------- */
+  var dd = null;
+  function openDishes() {
+    dd = { n: 2, owner: null };
+    openModal('<h2 id="m-title">' + esc(DISH_NAME) + '</h2><p class="lead">Your own dishes don’t count. ' + perText() + '. ' +
+      'Honour system: take a photo on your phone if you think someone will argue.</p>' +
+      '<p class="q">How many?</p><div class="stepper">' +
+      '<button type="button" class="btn" data-act="dd-step" data-id="-1" aria-label="One less">' + I.minus + '</button>' +
+      '<span class="num" id="dd-n" aria-live="polite">' + dd.n + '</span>' +
+      '<button type="button" class="btn" data-act="dd-step" data-id="1" aria-label="One more">' + I.plus + '</button>' +
+      '<span class="eq" id="dd-pts">= ' + plural(dishPoints(dd.n), 'point', 'points') + '</span></div>' +
+      '<p class="q">Whose were they? <span class="opt">(if you know)</span></p><div class="pill-row">' + S.people.map(function (p) {
+        return '<button type="button" class="pill" data-act="dd-owner" data-grp="owner" data-id="' + p.id + '" aria-pressed="false">' + dot(p.id) + esc(p.name) + '</button>';
+      }).join('') + '</div>' +
+      '<p class="q">Who washed them?</p><div class="pick-grid">' + S.people.map(function (p) {
+        return '<button type="button" class="pick" data-act="dd-pick" data-id="' + p.id + '">' + av(p.id) + '<span>' + esc(p.name) + '</span></button>';
+      }).join('') + '</div>' +
+      '<p class="error" id="dd-err" hidden></p>' +
+      '<div class="actions"><button type="button" class="btn" data-act="close">Cancel</button></div>', 'wide');
+  }
 
   /* ---------- the week sum-up ---------- */
   var sumWeek = null;
@@ -730,14 +963,17 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
     }
 
     html += '<section class="sum-sec"><h3>Zones</h3><ul class="sum-zones">' + d.zones.map(function (x) {
-      var st;
-      if (x.state === 'done') st = '<span class="zstate ok">' + I.check + 'Done ' + esc(fmtWeekday.format(new Date(x.t.at))) + '</span>';
-      else if (x.state === 'late') st = '<span class="zstate ok">' + I.check + 'Done, ticked Monday</span>';
-      else if (x.state === 'missed') st = '<span class="zstate bad">Missed' + (d.pen ? ', minus ' + d.pen : '') + '</span>';
+      var st, more = '';
+      if (x.state === 'done') st = '<span class="zstate ok">' + I.check + 'Done ' + esc(fmtWeekday.format(new Date(x.st.zt.at))) + '</span>';
+      else if (x.state === 'late') st = '<span class="zstate ok">' + I.check + 'Done, finished Monday</span>';
+      else if (x.state === 'missed') {
+        st = '<span class="zstate bad">' + (d.mode === 'task' ? plural(x.missed.length, 'task', 'tasks') + ' missed' : 'Missed') + (x.pen ? ', minus ' + x.pen : '') + '</span>';
+        if (d.mode === 'task' && x.missed.length) more = '<span class="missed">Not done: ' + esc(x.missed.join(', ')) + '</span>';
+      }
       else if (x.state === 'excused') st = '<span class="zstate wait">Let off, no minus</span>';
-      else if (x.state === 'grace') st = '<span class="zstate bad">Not ticked, last chance ' + pad(GRACE_HOUR) + ':00</span>';
-      else st = '<span class="zstate wait">Not done yet</span>';
-      return '<li>' + av(x.who, 'sm') + '<span><b>' + esc(x.z.name) + '</b> <span class="muted">' + esc(person(x.who).name) + '</span></span>' + st + '</li>';
+      else if (x.state === 'grace') st = '<span class="zstate bad">' + x.st.done + ' of ' + x.st.total + ' done, last chance ' + pad(GRACE_HOUR) + ':00</span>';
+      else st = '<span class="zstate wait">' + x.st.done + ' of ' + x.st.total + ' done</span>';
+      return '<li>' + av(x.who, 'sm') + '<span><b>' + esc(x.z.name) + '</b> <span class="muted">' + esc(person(x.who).name) + '</span></span>' + st + more + '</li>';
     }).join('') + '</ul></section>';
 
     html += '<section class="sum-sec"><h3>Points this week</h3><table class="sum-table"><thead><tr><th scope="col">Who</th><th scope="col">Jobs</th>' +
@@ -749,15 +985,30 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
 
     html += '<section class="sum-sec"><h3>Who did what</h3><ul class="did">' + d.list.map(function (r) {
       var parts = Object.keys(r.by).sort(function (a, b) { return r.by[b] - r.by[a]; }).map(function (k) { return esc(k) + ' ×' + r.by[k]; });
+      if (r.dishes) parts.push('washed ' + plural(r.dishes, 'dish', 'dishes') + ' for others');
       return '<li>' + dot(r.p.id) + ' <b>' + esc(r.p.name) + ':</b> <span>' + (parts.length ? parts.join(', ') : 'nothing logged') + '</span></li>';
     }).join('') + '</ul></section>';
+
+    if (d.minuses.length) {
+      html += '<section class="sum-sec"><h3>Minuses given</h3><ul class="did">' + d.minuses.map(function (e) {
+        return '<li>' + dot(e.who) + ' <b>' + esc(person(e.from).name) + '</b> <span>gave</span> <b>' + esc(person(e.who).name) + '</b> <span>a minus: ' +
+          esc(e.reason) + ' (' + esc(fmtWeekday.format(new Date(e.at))) + ' ' + hhmm(new Date(e.at)) + ')</span></li>';
+      }).join('') + '</ul></section>';
+    }
+    var owners = Object.keys(d.owners);
+    if (owners.length) {
+      html += '<section class="sum-sec"><h3>Dishes left for someone else to wash</h3><p class="sum-month">' +
+        owners.sort(function (a, b) { return d.owners[b] - d.owners[a]; }).map(function (id) {
+          return esc(person(id).name) + ' <b>' + d.owners[id] + '</b>';
+        }).join(' · ') + '</p></section>';
+    }
 
     var m = monthLine(now);
     html += '<section class="sum-sec"><h3>' + esc(fmtMonth.format(now)) + ' so far</h3><p class="sum-month">' + byPoints(m.totals).map(function (p) {
       return esc(p.name) + ' <b>' + fmtPts(m.totals[p.id]) + '</b>';
     }).join(' · ') + '</p><p class="note">' + esc(m.note) + (m.bottom.length ? ' Bottom at the end of the month buys the cleaning supplies.' : '') + '</p></section>';
 
-    var link = waLink(sumText(wk, now));
+    var link = waLinkFor(wk, now);
     html += '<section class="sum-sec"><h3>Send it to the house WhatsApp group</h3><div class="wa-row">' +
       '<div class="qr" id="qr" role="img" aria-label="QR code that opens WhatsApp with this sum-up written out"></div>' +
       '<div class="wa-text"><p>Scan this with your phone camera. WhatsApp opens with the sum-up written out. Pick the house group and press send.</p>' +
@@ -837,14 +1088,18 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
     if (day) body += '</ul>';
     if (!items.length) body = '<p class="empty">Nothing logged since ' + esc(fmtDM.format(from)) + '.</p>';
     openModal('<h2 id="m-title">Everything since ' + esc(fmtDM.format(from)) + '</h2>' +
-      '<p class="lead">Something wrong? Remove it. That needs the PIN. Removing a zone tick brings back its minus points once the week is over.</p>' +
+      '<p class="lead">Something wrong? Remove it. That needs the PIN. Removing a finished zone brings back its minus points once the week is over.</p>' +
       body + '<div class="actions"><button type="button" class="btn primary" data-act="close">Close</button></div>', 'wide');
   }
   function removeItem(key) {
     var p = key.split('|');
-    if (p[0] === 'job') { S.entries = S.entries.filter(function (e) { return e.id !== p[1]; }); }
+    if (p[0] === 'e') { S.entries = S.entries.filter(function (e) { return e.id !== p[1]; }); }
     else if (p[0] === 'miss') { S.excused[p[1]] = S.excused[p[1]] || {}; S.excused[p[1]][p[2]] = new Date().toISOString(); }
-    else if (p[0] === 'tick') { if (S.ticks[p[1]]) delete S.ticks[p[1]][p[2]]; }
+    else if (p[0] === 'tick') {
+      if (S.ticks[p[1]]) delete S.ticks[p[1]][p[2]];
+      if (S.itemTicks[p[1]]) delete S.itemTicks[p[1]][p[2]];
+      if (S.weeks[p[1]]) delete S.weeks[p[1]].res;   // a closed week gets worked out again
+    }
     save(); render();
   }
 
@@ -859,6 +1114,11 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
         return '<option value="' + o[0] + '"' + (o[0] === j.lock ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label>' +
       '<button type="button" class="btn quiet" data-act="job-del">Remove</button></div>';
   }
+  function numOptions(from, to, sel) {
+    var out = '';
+    for (var n = from; n <= to; n++) out += '<option value="' + n + '"' + (n === sel ? ' selected' : '') + '>' + n + '</option>';
+    return out;
+  }
   function openSettings() {
     var now = new Date(), wk = weekKey(now), w = week(wk);
     var opts = function (sel) {
@@ -870,17 +1130,18 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
       '</div></section>' +
       '<section class="form-sec"><h3>Jobs and points</h3><p class="help">After someone logs a job it locks for a while, so nobody can tap it twice in a row.</p>' +
       '<div id="job-rows">' + S.jobs.map(jobRowHtml).join('') + '</div>' +
-      '<button type="button" class="btn" data-act="job-add">Add a job</button></section>' +
-      '<section class="form-sec"><h3>Zones</h3><p class="help">Each zone includes hoovering and mopping its own floors.</p>' +
+      '<button type="button" class="btn" data-act="job-add">Add a job</button>' +
+      '<label class="field mt"><span class="lbl">Someone else’s dishes: how many for 1 point</span><select id="dper">' + numOptions(1, 5, S.dishesPer) + '</select></label></section>' +
+      '<section class="form-sec"><h3>Zones</h3><p class="help">Each zone includes hoovering and mopping its own floors. Put each job on its own line: that is the tick list.</p>' +
       S.zones.map(function (z, i) {
         return '<div class="row zone-row" data-zone="' + z.id + '"><label class="field"><span class="lbl">Zone ' + (i + 1) + '</span><input type="text" class="z-name" value="' + esc(z.name) + '" maxlength="30"></label>' +
-          '<label class="field"><span class="lbl">What it covers</span><input type="text" class="z-tasks" value="' + esc(z.tasks) + '" maxlength="120"></label></div>';
+          '<label class="field"><span class="lbl">Its jobs, one per line</span><textarea class="z-items" rows="' + Math.max(3, z.items.length) + '">' +
+          esc(z.items.map(function (x) { return x.name; }).join('\n')) + '</textarea></label></div>';
       }).join('') + '</section>' +
       '<section class="form-sec"><h3>Who has what this week</h3><p class="help">Everyone moves on one zone every Monday, and the captain moves on too.</p><div class="grid-2">' +
       S.zones.map(function (z) { return '<label class="field"><span class="lbl">' + esc(z.name) + '</span><select class="assign" data-zone="' + z.id + '">' + opts(w.zones[z.id]) + '</select></label>'; }).join('') +
       '<label class="field"><span class="lbl">Captain</span><select id="cap">' + opts(w.captain) + '</select></label>' +
-      '<label class="field"><span class="lbl">Minus points for a zone not ticked</span><select id="pen">' + [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(function (n) {
-        return '<option value="' + n + '"' + (n === S.penalty ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label></div></section>' +
+      '<label class="field"><span class="lbl">Minus for each zone job not done by Sunday night</span><select id="pen">' + numOptions(0, 5, S.penalty) + '</select></label></div></section>' +
       '<section class="form-sec"><h3>Screen</h3><label class="check"><input type="checkbox" id="awake"' + (S.keepAwake ? ' checked' : '') + '> Keep the screen on while the board is open</label>' +
       '<div class="btn-row"><button type="button" class="btn" data-act="fullscreen">Full screen</button></div></section>' +
       '<section class="form-sec"><h3>Backup</h3><p class="help">Points only live on this tablet. Save a backup now and then. ' +
@@ -906,12 +1167,20 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
     }).filter(function (j) { return j.name; });
     if (!jobs.length) err.push('Keep at least one job.');
     var zones = [].map.call(form.querySelectorAll('.zone-row'), function (r) {
-      return { id: r.getAttribute('data-zone'), name: r.querySelector('.z-name').value.trim(), tasks: r.querySelector('.z-tasks').value.trim() };
+      var id = r.getAttribute('data-zone'), old = zoneById(id), used = {};
+      var items = r.querySelector('.z-items').value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean).map(function (n) {
+        // Keep a job's id when its name stays, so ticks already made this week still count.
+        var match = old.items.filter(function (x) { return x.name.toLowerCase() === n.toLowerCase() && !used[x.id]; })[0];
+        if (match) { used[match.id] = true; return { id: match.id, name: n }; }
+        return { id: id + 't' + uid(), name: n };
+      });
+      return { id: id, name: r.querySelector('.z-name').value.trim(), items: items };
     });
     if (zones.some(function (z) { return !z.name; })) err.push('Every zone needs a name.');
+    if (zones.some(function (z) { return !z.items.length; })) err.push('Every zone needs at least one job.');
     var assign = {}, used = {};
     [].forEach.call(form.querySelectorAll('.assign'), function (s) { assign[s.getAttribute('data-zone')] = s.value; used[s.value] = true; });
-    if (Object.keys(used).length !== S.people.length) err.push('Each person needs exactly one zone this week.');
+    if (Object.keys(used).length !== Math.min(S.people.length, zones.length)) err.push('Each person needs a different zone this week.');
     if (err.length) { showErr('set-err', err.join(' ')); return; }
 
     var now = new Date(), wk = weekKey(now);
@@ -920,6 +1189,7 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
     S.jobs = jobs;
     S.zones = zones;
     S.penalty = +form.querySelector('#pen').value;
+    S.dishesPer = +form.querySelector('#dper').value;
     S.rot = { anchor: wk, zones: S.zones.map(function (z) { return pIndex(assign[z.id]); }), captain: pIndex(form.querySelector('#cap').value) };
     S.weeks[wk] = computeWeek(wk);
     S.keepAwake = form.querySelector('#awake').checked;
@@ -971,6 +1241,9 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
   }
 
   /* ---------- taps ---------- */
+  function takeBack(id) {
+    S.entries = S.entries.filter(function (x) { return x.id !== id; }); save(); render(); toast('Taken back.');
+  }
   var handlers = {
     job: function (el, id) {
       var j = jobById(id); if (!j) return;
@@ -991,53 +1264,66 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
       if (last && now - new Date(last.at) < j.lock * 60000) { closeModal(); toast('Someone just logged that one.'); return; }
       var e = { id: uid(), kind: 'job', job: j.id, jobName: j.name, pts: j.pts, who: pid, at: now.toISOString() };
       S.entries.push(e); save(); closeModal(); render();
-      toast('+' + j.pts + ' for ' + person(pid).name + ': ' + j.name, { label: 'Undo', fn: function () {
-        S.entries = S.entries.filter(function (x) { return x.id !== e.id; }); save(); render(); toast('Taken back.');
-      } });
+      toast('+' + j.pts + ' for ' + person(pid).name + ': ' + j.name, { label: 'Undo', fn: function () { takeBack(e.id); } });
+    },
+    dishes: function () { openDishes(); },
+    'dd-step': function (el, step) {
+      dd.n = Math.max(1, Math.min(40, dd.n + (+step)));
+      document.getElementById('dd-n').textContent = dd.n;
+      document.getElementById('dd-pts').textContent = '= ' + plural(dishPoints(dd.n), 'point', 'points');
+    },
+    'dd-owner': function (el, id) { dd.owner = dd.owner === id ? null : id; setPressed('owner', dd.owner); showErr('dd-err', ''); },
+    'dd-pick': function (el, pid) {
+      if (dd.owner === pid) { showErr('dd-err', 'Your own dishes don’t count. Pick who washed them, or change whose they were.'); return; }
+      var now = new Date(), pts = dishPoints(dd.n);
+      var e = { id: uid(), kind: 'job', job: DISH, jobName: DISH_NAME, pts: pts, count: dd.n, owner: dd.owner, who: pid, at: now.toISOString() };
+      S.entries.push(e); save(); closeModal(); render();
+      toast('+' + pts + ' for ' + person(pid).name + ': ' + (e.owner ? e.count + ' of ' + possessive(person(e.owner).name) + ' dishes' : plural(e.count, 'dish', 'dishes')),
+        { label: 'Undo', fn: function () { takeBack(e.id); } });
+    },
+    minus: function () { openMinus(); },
+    md: function (el, id) {
+      var grp = el.getAttribute('data-grp');
+      md[grp] = md[grp] === id ? null : id;   // tap again to clear
+      setPressed(grp, md[grp]);
+      // Nobody can give themselves a minus.
+      if (md.to && md.to === md.from) { md.to = null; setPressed('to', null); }
+      [].forEach.call(modalRoot.querySelectorAll('.pill[data-grp="to"]'), function (b) { b.disabled = b.getAttribute('data-id') === md.from; });
+      showErr('md-err', '');
+    },
+    'md-give': function () {
+      var text = ((document.getElementById('md-text') || {}).value || '').trim();
+      var chip = md.why != null ? REASONS[+md.why] : '';
+      var reason = chip && text ? chip + ': ' + text : (text || chip);
+      if (!md.from) { showErr('md-err', 'Pick who is giving it.'); return; }
+      if (!md.to) { showErr('md-err', 'Pick who gets it.'); return; }
+      if (!reason) { showErr('md-err', 'Say why, so everyone knows what it was for.'); return; }
+      var now = new Date(), today = dayKey(now);
+      var twice = S.entries.some(function (e) { return e.kind === 'minus' && e.from === md.from && e.who === md.to && dayKey(new Date(e.at)) === today; });
+      if (twice) { showErr('md-err', person(md.from).name + ' already gave ' + person(md.to).name + ' a minus today. One a day each.'); return; }
+      var e = { id: uid(), kind: 'minus', who: md.to, from: md.from, pts: -1, reason: reason, at: now.toISOString() };
+      S.entries.push(e); save(); closeModal(); render();
+      toast('Minus 1 for ' + person(e.who).name + ', from ' + person(e.from).name + '.', { label: 'Undo', fn: function () { takeBack(e.id); } });
     },
     undo: function (el, id) {
       var e = entryById(id); if (!e) return;
       if (new Date() - new Date(e.at) > UNDO_MS) { render(); toast('Too late to undo here. Use See everything.'); return; }
-      S.entries = S.entries.filter(function (x) { return x.id !== id; }); save(); render(); toast('Taken back.');
+      takeBack(id);
     },
-    tick: function (el, zid) {
-      var wk = weekKey(new Date()), w = week(wk), z = zoneById(zid);
-      openModal('<h2 id="m-title">Tick off ' + esc(z.name) + '?</h2><p class="lead">This marks it done for ' + esc(person(w.zones[zid]).name) + ' this week.</p>' +
-        '<div class="actions"><button type="button" class="btn" data-act="close">Not yet</button>' +
-        '<button type="button" class="btn primary" data-act="tick-yes" data-id="' + zid + '" data-wk="' + wk + '">Yes, it’s done</button></div>');
-    },
-    'tick-yes': function (el, zid) {
-      var wk = el.getAttribute('data-wk'), w = week(wk), who = w.zones[zid];
-      S.ticks[wk] = S.ticks[wk] || {};
-      S.ticks[wk][zid] = { who: who, at: new Date().toISOString() };
-      save(); closeModal(); render();
-      toast(zoneById(zid).name + ' ticked off for ' + person(who).name + '.', { label: 'Undo', fn: function () {
-        if (S.ticks[wk]) delete S.ticks[wk][zid]; save(); render(); toast('Taken back.');
-      } });
-    },
-    untick: function (el, zid) {
-      var wk = el.getAttribute('data-wk'), t = (S.ticks[wk] || {})[zid];
-      if (!t) return;
-      if (new Date() - new Date(t.at) > UNDO_MS) { render(); return; }
-      delete S.ticks[wk][zid]; save(); render(); toast('Taken back.');
-    },
-    late: function (el, zid) {
-      var wk = el.getAttribute('data-wk'), z = zoneById(zid), who = S.weeks[wk] && S.weeks[wk].zones[zid];
-      openModal('<h2 id="m-title">Was last week’s ' + esc(z.name) + ' done?</h2><p class="lead">Only tick it if ' + esc(person(who).name) + ' really did it. The captain can check.</p>' +
-        '<div class="actions"><button type="button" class="btn" data-act="close">No</button>' +
-        '<button type="button" class="btn primary" data-act="late-yes" data-id="' + zid + '" data-wk="' + wk + '">Yes, it was done</button></div>');
-    },
-    'late-yes': function (el, zid) {
-      var wk = el.getAttribute('data-wk'), now = new Date();
-      closeModal();
-      if (now >= lastChance(wk)) { render(); toast('Too late, the last chance was ' + pad(GRACE_HOUR) + ':00.'); return; }
-      S.ticks[wk] = S.ticks[wk] || {};
-      S.ticks[wk][zid] = { who: S.weeks[wk].zones[zid], at: now.toISOString(), late: true };
-      save(); render(); toast('Ticked off for last week.');
+    zone: function (el, zid) { openZone(el.getAttribute('data-wk'), zid); },
+    item: function (el, itemId) {
+      var wk = el.getAttribute('data-wk'), zid = el.getAttribute('data-zone');
+      if (!canTick(wk, new Date())) { openZone(wk, zid); return; }
+      var finished = toggleItem(wk, zid, itemId);
+      render(); openZone(wk, zid);
+      if (finished) toast(zoneById(zid).name + ' is done. Nice one, ' + person(week(wk).zones[zid]).name + '.');
     },
     sumup: function () { openSumup(defaultSumWeek(new Date())); },
     'sum-go': function (el) { openSumup(el.getAttribute('data-wk')); },
-    'copy-sum': function () { copyText(sumText(sumWeek || weekKey(new Date()), new Date())); },
+    'copy-sum': function () {
+      var wk = sumWeek || weekKey(new Date()), now = new Date(), link = waLinkFor(wk, now);
+      copyText(decodeURIComponent(link.split('text=')[1]));
+    },
     log: function () { openLog(); },
     remove: function (el, key) {
       requirePin(function () { removeItem(key); openLog(); toast('Removed.'); });
@@ -1079,7 +1365,7 @@ textarea.copy{min-height:280px;font-size:16px;line-height:1.45;resize:vertical}
     },
     'reset-yes': function () {
       var now = new Date();
-      S.entries = []; S.ticks = {}; S.excused = {}; S.weeks = {}; S.start = dayKey(now);
+      S.entries = []; S.ticks = {}; S.itemTicks = {}; S.excused = {}; S.weeks = {}; S.start = dayKey(now);
       ensureWeeks(now); save(); closeModal(); render(); toast('Fresh start. Everyone is on zero.');
     }
   };
