@@ -68,6 +68,7 @@ button,.btn{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;us
 .top .sub{margin:2px 0 0;color:var(--ink-2);font-size:17px}
 .clock{font-size:40px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
 .icon-btn{width:56px;height:56px;border-radius:14px;border:1px solid var(--line);background:var(--card);display:inline-flex;align-items:center;justify-content:center;color:var(--ink-2);flex:none}
+.refresh.ready{width:auto;padding:0 16px;gap:8px;background:var(--btn);color:var(--btn-ink);border-color:var(--btn);font-weight:650;font-size:17px}
 .warn{margin:0 0 14px;padding:12px 16px;border-radius:12px;background:var(--bad-bg);color:var(--bad);font-weight:600}
 
 /* layout: jobs across the top, then zones beside points and today (tablet landscape),
@@ -301,6 +302,7 @@ textarea.copy{min-height:280px;font-size:16px}
   'use strict';
 
   var KEY = 'houseJobs.v1';
+  var BUILD = '2026-09-29a';       // changed on every publish, so the board can tell a newer one is out
   var UNDO_MS = 2 * 60 * 1000;     // how long a tap can be taken back from the board
   var GRACE_HOUR = 10;             // last week's zones can still be ticked until Monday 10:00
   var PIN_OPEN_MS = 5 * 60 * 1000; // PIN stays open this long after it is typed
@@ -846,6 +848,7 @@ textarea.copy{min-height:280px;font-size:16px}
     check: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
     checkSm: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
     lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+    refresh: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>',
     list: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>',
     alert: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>',
     minus: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>',
@@ -874,6 +877,9 @@ textarea.copy{min-height:280px;font-size:16px}
   function renderTop(now) {
     return '<header class="top"><div class="grow"><h1>House jobs</h1><p class="sub">' + esc(fmtLong.format(now)) + '</p></div>' +
       '<div class="clock" aria-hidden="true">' + hhmm(now) + '</div>' +
+      (updateReady
+        ? '<button class="icon-btn refresh ready" type="button" data-act="refresh">' + I.refresh + 'Update ready</button>'
+        : '<button class="icon-btn refresh" type="button" data-act="refresh" aria-label="Refresh">' + I.refresh + '</button>') +
       '<button class="icon-btn" type="button" data-act="settings" aria-label="Settings">' + I.gear + '</button></header>';
   }
 
@@ -1457,6 +1463,26 @@ textarea.copy{min-height:280px;font-size:16px}
     r.readAsText(file);
   }
 
+  /* ---------- updates ---------- */
+  // Every half hour (and whenever the tablet wakes) look at the live page. If its BUILD differs from the
+  // one running here, the refresh button turns into "Update ready". Points are kept either way: they live
+  // on the tablet, not in the page.
+  var updateReady = false, lastCheck = 0;
+  function checkForUpdate() {
+    lastCheck = Date.now();
+    if (!window.fetch || location.protocol === 'file:') return;
+    fetch(location.pathname, { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (html) {
+      var m = /var BUILD = '([^']+)'/.exec(html || '');
+      if (m && m[1] !== BUILD && !updateReady) { updateReady = true; render(); }
+    }).catch(function () { /* offline: try again later */ });
+  }
+  function refreshBoard() {
+    save();
+    toast('Refreshing…');
+    var go = function () { location.reload(); };
+    if (window.fetch) fetch(location.pathname, { cache: 'reload' }).then(go, go); else go();
+  }
+
   /* ---------- keep the screen on ---------- */
   var wakeLock = null, wakePending = false;
   function applyWakeLock() {
@@ -1566,6 +1592,7 @@ textarea.copy{min-height:280px;font-size:16px}
       requirePin(function () { removeItem(key); openLog(); toast('Removed.'); });
     },
     settings: function () { requirePin(openSettings); },
+    refresh: function () { refreshBoard(); },
     close: function () { closeModal(); },
     'job-add': function () {
       var box = document.getElementById('job-rows');
@@ -1674,17 +1701,26 @@ textarea.copy{min-height:280px;font-size:16px}
   });
   document.addEventListener('visibilitychange', function () {
     // Re-read from storage only when storage works, or a tablet with blocked storage would lose its points.
-    if (document.visibilityState === 'visible') { if (storageOK) { S = load(new Date()); migrateLayout(new Date()); } render(); }
+    if (document.visibilityState === 'visible') {
+      if (storageOK) { S = load(new Date()); migrateLayout(new Date()); }
+      render();
+      if (Date.now() - lastCheck > 60 * 1000) checkForUpdate();
+    }
     applyWakeLock();
   });
   window.addEventListener('storage', function (e) { if (e.key === KEY && storageOK) { S = load(new Date()); migrateLayout(new Date()); render(); } });
   // Redraw every minute, so a locked job opens again on its own and the clock stays right.
-  setInterval(function () { var n = new Date(); if (dayKey(n) + ' ' + hhmm(n) !== lastMinute) render(); }, 5000);
+  setInterval(function () {
+    var n = new Date();
+    if (dayKey(n) + ' ' + hhmm(n) !== lastMinute) render();
+    if (Date.now() - lastCheck > 30 * 60 * 1000) checkForUpdate();
+  }, 5000);
 
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* optional */ }
   migrateLayout(new Date());
   save();
   render();
+  setTimeout(checkForUpdate, 10000);
   applyWakeLock();
 })();
 </script>
