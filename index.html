@@ -391,14 +391,14 @@ textarea.copy{min-height:280px;font-size:16px}
         { id: 'j8', name: 'Take the bin bag down', pts: 1, lock: 60 },
         { id: 'j4', name: 'Fill the water filter', pts: 1, lock: 60 },
         { id: 'j6', name: 'Recycling or glass run', pts: 2, lock: 60 },
-        { id: 'j9', name: 'Clean the washing machine', pts: 2, lock: 10080 },
-        { id: 'j10', name: 'Descale the washing machine', pts: 3, lock: 40320 }
+        { id: 'j9', name: 'Clean the coffee machine', pts: 1, lock: 10080 },
+        { id: 'j10', name: 'Descale the coffee machine', pts: 2, lock: 40320 }
       ],
       zones: houseZones(),
       // rot.zones[i] = who has zone i in the anchor week; everyone moves on one each Monday.
       // With more people than zones, whoever has no zone that week is captain.
       rot: { anchor: weekKey(now), zones: ['p2', 'p3', 'p4', 'p5'], captain: 'p1' },
-      layout: 6,
+      layout: 7,
       penalty: 1,          // minus for each zone task not ticked by Sunday night
       penMode: 'task',
       dishesPer: 2,        // someone else's dishes: this many for 1 point
@@ -615,6 +615,17 @@ textarea.copy{min-height:280px;font-size:16px}
         });
       }
       S.layout = 6; did = true;
+    }
+    if (S.layout < 7) {
+      // 29 Sep: it is the coffee machine, not the washing machine (Michal): clean 1 point, descale 2.
+      // Anything already logged under the old names is renamed and re-scored, so the table matches.
+      var coffee = { 'clean the washing machine': ['Clean the coffee machine', 1], 'descale the washing machine': ['Descale the coffee machine', 2] };
+      S.jobs.forEach(function (j) { var c = coffee[j.name.toLowerCase()]; if (c) { j.name = c[0]; j.pts = c[1]; } });
+      S.entries.forEach(function (e) { var c = e.kind === 'job' && coffee[String(e.jobName).toLowerCase()]; if (c) { e.jobName = c[0]; e.pts = c[1]; } });
+      [['Clean the coffee machine', 1, 10080], ['Descale the coffee machine', 2, 40320]].forEach(function (x) {
+        if (!S.jobs.some(function (j) { return j.name === x[0]; }) && S.jobs.length < 12) S.jobs.push({ id: 'j' + uid(), name: x[0], pts: x[1], lock: x[2] });
+      });
+      S.layout = 7; did = true;
     }
     return did;
   }
