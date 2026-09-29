@@ -244,8 +244,8 @@ button,.btn{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;us
 .did li span{color:var(--ink-2)}
 .sum-month{margin:0;font-size:18px}
 .wa-row{display:flex;flex-wrap:wrap;gap:16px 22px;align-items:center}
-.qr{background:#ffffff;padding:14px;border-radius:14px;width:340px;height:340px;flex:none;border:1px solid var(--line)}
-.qr svg{display:block;width:100%;height:100%}
+.qr{background:#ffffff;padding:14px;border-radius:14px;width:340px;height:340px;flex:none;border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+.qr svg{display:block;shape-rendering:crispEdges}
 .wa-text{flex:1 1 260px}
 .wa-text p{margin:0 0 14px;font-size:17px}
 
@@ -327,6 +327,10 @@ textarea.copy{min-height:280px;font-size:16px}
   function addMonths(d, n) { return new Date(d.getFullYear(), d.getMonth() + n, 1); }
   function mod(a, n) { return ((a % n) + n) % n; }
   function hhmm(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  // A job locked for days says the day it opens, not just a time.
+  function opensText(until, now) { return dayKey(until) === dayKey(now) ? hhmm(until) : fmtShortLater(until); }
+  function whenText(at, now) { return dayKey(at) === dayKey(now) ? 'at ' + hhmm(at) : 'on ' + fmtShortLater(at); }
+  function fmtShortLater(d) { return new Intl.DateTimeFormat('en-IE', { weekday: 'short', day: 'numeric', month: 'short' }).format(d); }
 
   var fmtLong = new Intl.DateTimeFormat('en-IE', { weekday: 'long', day: 'numeric', month: 'long' });
   var fmtShort = new Intl.DateTimeFormat('en-IE', { weekday: 'short', day: 'numeric', month: 'short' });
@@ -386,13 +390,15 @@ textarea.copy{min-height:280px;font-size:16px}
         { id: 'j3', name: 'Change the bin', pts: 1, lock: 60 },
         { id: 'j8', name: 'Take the bin bag down', pts: 1, lock: 60 },
         { id: 'j4', name: 'Fill the water filter', pts: 1, lock: 60 },
-        { id: 'j6', name: 'Recycling or glass run', pts: 2, lock: 60 }
+        { id: 'j6', name: 'Recycling or glass run', pts: 2, lock: 60 },
+        { id: 'j9', name: 'Clean the washing machine', pts: 2, lock: 10080 },
+        { id: 'j10', name: 'Descale the washing machine', pts: 3, lock: 40320 }
       ],
       zones: houseZones(),
       // rot.zones[i] = who has zone i in the anchor week; everyone moves on one each Monday.
       // With more people than zones, whoever has no zone that week is captain.
       rot: { anchor: weekKey(now), zones: ['p2', 'p3', 'p4', 'p5'], captain: 'p1' },
-      layout: 5,
+      layout: 6,
       penalty: 1,          // minus for each zone task not ticked by Sunday night
       penMode: 'task',
       dishesPer: 2,        // someone else's dishes: this many for 1 point
@@ -597,6 +603,18 @@ textarea.copy{min-height:280px;font-size:16px}
       addToUntouched('z1', ROUND4.z1, 'Mop the floor', 'Hoover');
       addToUntouched('z4', ROUND4.z4, 'Hoover and mop the floor', 'Wipe the windowsills');
       S.layout = 5; did = true;
+    }
+    if (S.layout < 6) {
+      // 29 Sep: the washing machine, cleaned and descaled, as two jobs (Michal). They come round every few
+      // weeks, not every week, so they are points jobs with a long lock rather than laundry room ticks.
+      if (!S.jobs.some(function (j) { return /washing machine/i.test(j.name); })) {
+        [['Clean the washing machine', 2, 10080], ['Descale the washing machine', 3, 40320]].forEach(function (x) {
+          if (S.jobs.length >= 12) return;
+          var id = 'j' + uid();
+          S.jobs.push({ id: id, name: x[0], pts: x[1], lock: x[2] });
+        });
+      }
+      S.layout = 6; did = true;
     }
     return did;
   }
@@ -808,7 +826,7 @@ textarea.copy{min-height:280px;font-size:16px}
   function waLink(text) { return 'https://wa.me/?text=' + encodeURIComponent(text); }
   function waLinkFor(wk, now) {
     var link = waLink(sumText(wk, now));
-    return link.length > 1400 ? waLink(sumText(wk, now, true)) : link;
+    return link.length > 700 ? waLink(sumText(wk, now, true)) : link;
   }
 
   /* ---------- icons ---------- */
@@ -856,12 +874,12 @@ textarea.copy{min-height:280px;font-size:16px}
         until = new Date(at.getTime() + j.lock * 60000);
         if (now < until) {
           locked = true;
-          foot = I.lock + '<span>' + esc(person(last.who).name) + ' did it, opens ' + hhmm(until) + '</span>';
+          foot = I.lock + '<span>' + esc(person(last.who).name) + ' did it, opens ' + esc(opensText(until, now)) + '</span>';
         } else if (dayKey(at) === dayKey(now)) {
           foot = '<span>Last: ' + esc(person(last.who).name) + ', ' + hhmm(at) + '</span>';
         }
       }
-      var label = j.name + ', ' + plural(j.pts, 'point', 'points') + (locked ? '. Done already, opens again at ' + hhmm(until) : '');
+      var label = j.name + ', ' + plural(j.pts, 'point', 'points') + (locked ? '. Done already, opens again ' + (dayKey(until) === dayKey(now) ? 'at ' : 'on ') + opensText(until, now) : '');
       return '<button type="button" class="job' + (locked ? ' locked' : '') + '" data-act="job" data-id="' + esc(j.id) + '" aria-label="' + esc(label) + '">' +
         '<span class="head"><span class="name">' + esc(j.name) + '</span><span class="pts">+' + j.pts + '</span></span>' +
         '<span class="status">' + foot + '</span></button>';
@@ -1200,7 +1218,9 @@ textarea.copy{min-height:280px;font-size:16px}
       var q = window.qrcode(0, 'L');
       q.addData(text);
       q.make();
-      box.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+      // Whole pixels per square, so a phone camera sees sharp edges.
+      var cell = Math.max(2, Math.floor((box.clientWidth - 28) / q.getModuleCount()));
+      box.innerHTML = q.createSvgTag({ cellSize: cell, margin: 0 });
     } catch (e) { box.parentNode.removeChild(box); }
   }
   function copyText(text) {
@@ -1276,7 +1296,8 @@ textarea.copy{min-height:280px;font-size:16px}
   }
 
   /* ---------- settings ---------- */
-  var LOCKS = [[15, '15 min'], [30, '30 min'], [60, '1 hour'], [120, '2 hours'], [180, '3 hours'], [360, '6 hours']];
+  var LOCKS = [[15, '15 min'], [30, '30 min'], [60, '1 hour'], [120, '2 hours'], [180, '3 hours'], [360, '6 hours'],
+    [1440, '1 day'], [10080, '1 week'], [40320, '4 weeks']];
   function jobRowHtml(j) {
     return '<div class="row job-row" data-job="' + esc(j.id) + '">' +
       '<label class="field"><span class="lbl">Job</span><input type="text" class="j-name" value="' + esc(j.name) + '" maxlength="40"></label>' +
@@ -1453,7 +1474,7 @@ textarea.copy{min-height:280px;font-size:16px}
       var now = new Date(), last = lastFor(j.id);
       if (last) {
         var at = new Date(last.at), until = new Date(at.getTime() + j.lock * 60000);
-        if (now < until) { toast(person(last.who).name + ' did this at ' + hhmm(at) + '. It opens again at ' + hhmm(until) + '.'); return; }
+        if (now < until) { toast(person(last.who).name + ' did this ' + whenText(at, now) + '. It opens again ' + (dayKey(until) === dayKey(now) ? 'at ' : 'on ') + opensText(until, now) + '.'); return; }
       }
       openModal('<h2 id="m-title">Who did it?</h2><p class="lead">' + esc(j.name) + ', +' + plural(j.pts, 'point', 'points') + '</p><div class="pick-grid">' +
         activePeople().map(function (p) {
