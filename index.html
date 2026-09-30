@@ -68,6 +68,7 @@ button,.btn{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;us
 .top .sub{margin:2px 0 0;color:var(--ink-2);font-size:17px}
 .clock{font-size:40px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
 .icon-btn{width:56px;height:56px;border-radius:14px;border:1px solid var(--line);background:var(--card);display:inline-flex;align-items:center;justify-content:center;color:var(--ink-2);flex:none}
+.fx{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:70}
 .refresh.ready{width:auto;padding:0 16px;gap:8px;background:var(--btn);color:var(--btn-ink);border-color:var(--btn);font-weight:650;font-size:17px}
 .warn{margin:0 0 14px;padding:12px 16px;border-radius:12px;background:var(--bad-bg);color:var(--bad);font-weight:600}
 
@@ -302,7 +303,7 @@ textarea.copy{min-height:280px;font-size:16px}
   'use strict';
 
   var KEY = 'houseJobs.v1';
-  var BUILD = '2026-09-29a';       // changed on every publish, so the board can tell a newer one is out
+  var BUILD = '2026-09-30a';       // changed on every publish, so the board can tell a newer one is out
   var UNDO_MS = 2 * 60 * 1000;     // how long a tap can be taken back from the board
   var GRACE_HOUR = 10;             // last week's zones can still be ticked until Monday 10:00
   var PIN_OPEN_MS = 5 * 60 * 1000; // PIN stays open this long after it is typed
@@ -737,8 +738,28 @@ textarea.copy{min-height:280px;font-size:16px}
     });
     return t;
   }
-  // The first month only counts if the board started in its first week; otherwise it is a trial run.
+  // Points count from the day the board started. A board started after the 7th rolls those first days into
+  // the next month's table, so nobody wins or loses a whole month on two or three days.
   function countingFrom() { var st = fromKey(S.start); return st.getDate() <= 7 ? monthStart(st) : addMonths(st, 1); }
+  function periodAt(now) {
+    var st = fromKey(S.start), cf = countingFrom(), from, to;
+    if (now < cf) { from = st; to = addMonths(cf, 1); }
+    else {
+      from = monthStart(now); to = addMonths(now, 1);
+      if (from.getTime() === cf.getTime() && st < cf) from = st;
+    }
+    var lastDay = new Date(to.getFullYear(), to.getMonth(), 0), whole = from.getDate() === 1;
+    return {
+      from: from, to: to, lastDay: lastDay, next: to,
+      head: whole ? fmtMonth.format(from) : 'Since ' + fmtDMShort.format(from),
+      soFar: whole ? fmtMonth.format(from) + ' so far' : 'Since ' + fmtDMShort.format(from),
+      name: whole ? fmtMonth.format(from) : fmtDMShort.format(from) + ' to ' + fmtDMShort.format(lastDay)
+    };
+  }
+  function prevPeriod(now) {
+    var ref = new Date(periodAt(now).from.getTime() - 1);
+    return ref < fromKey(S.start) ? null : periodAt(ref);
+  }
   function bottomOf(t) {
     var min = Infinity, act = activePeople();
     act.forEach(function (p) { if (t[p.id] < min) min = t[p.id]; });
@@ -793,12 +814,11 @@ textarea.copy{min-height:280px;font-size:16px}
     return { wk: wk, ws: ws, captain: w.captain, pen: w.pen, mode: w.mode, zones: zones, list: list, minuses: minuses, owners: owners, current: wk === weekKey(now) };
   }
   function monthLine(now) {
-    var mt = sumBetween(scored(now), monthStart(now), addMonths(now, 1)), cf = countingFrom(), bot = bottomOf(mt);
+    var per = periodAt(now), mt = sumBetween(scored(now), per.from, per.to), bot = bottomOf(mt), level = bot.length === activePeople().length;
     return {
-      totals: mt,
-      note: now < cf ? 'Trial run. Points count for real from ' + fmtDM.format(cf) + '.'
-        : bot.length === activePeople().length ? 'Everyone is level.' : 'Bottom right now: ' + namesList(bot) + '.',
-      bottom: now < cf || bot.length === activePeople().length ? [] : bot
+      totals: mt, soFar: per.soFar,
+      note: level ? 'Everyone is level.' : 'Bottom right now: ' + namesList(bot) + '.',
+      bottom: level ? [] : bot
     };
   }
   // The text that goes to the WhatsApp group. The short one keeps the QR code easy to scan.
@@ -831,7 +851,7 @@ textarea.copy{min-height:280px;font-size:16px}
           .map(function (id) { return person(id).name + ' ' + d.owners[id]; }).join(', '));
       }
       var m = monthLine(now);
-      L.push('', fmtMonth.format(now) + ' so far: ' + byPoints(m.totals).map(function (p) { return p.name + ' ' + fmtPts(m.totals[p.id]); }).join(', '));
+      L.push('', m.soFar + ': ' + byPoints(m.totals).map(function (p) { return p.name + ' ' + fmtPts(m.totals[p.id]); }).join(', '));
       L.push(m.note);
     }
     return L.join('\n');
@@ -954,11 +974,11 @@ textarea.copy{min-height:280px;font-size:16px}
   }
 
   function renderPoints(now, wk, items) {
-    var ms = monthStart(now), me = addMonths(now, 1);
+    var per = periodAt(now), ms = per.from, me = per.to;
     var wt = sumBetween(items, fromKey(wk), weekEnd(wk)), mt = sumBetween(items, ms, me);
     var max = 0;
     activePeople().forEach(function (p) { if (mt[p.id] > max) max = mt[p.id]; });
-    var monthName = fmtMonth.format(now);
+    var monthName = per.head;
     var rows = byPoints(mt, wt).map(function (p) {
       var m = mt[p.id], pct = max > 0 && m > 0 ? Math.round(m / max * 100) : 0;
       return '<tr><td class="person"><span class="person-cell">' + av(p.id, 'sm') + esc(p.name) + '</span></td>' +
@@ -966,23 +986,21 @@ textarea.copy{min-height:280px;font-size:16px}
         '<td' + (wt[p.id] < 0 ? ' class="neg"' : '') + '>' + fmtPts(wt[p.id]) + '</td>' +
         '<td' + (m < 0 ? ' class="neg"' : '') + '>' + fmtPts(m) + '</td></tr>';
     }).join('');
-    var cf = countingFrom(), notes = '';
+    var notes = '';
     var anyone = activePeople().some(function (p) { return mt[p.id] !== 0; });
-    if (now < cf) {
-      notes += '<p class="note"><b>Trial run.</b> Points count for real from ' + esc(fmtDM.format(cf)) + '.</p>';
-    } else if (!anyone) {
-      notes += '<p class="note">Nobody has scored yet this month.</p>';
+    if (!anyone) {
+      notes += '<p class="note">Nobody has scored yet.</p>';
     } else {
-      var lastDay = new Date(me.getFullYear(), me.getMonth(), 0).getDate(), bot = bottomOf(mt);
+      var bot = bottomOf(mt);
       notes += '<p class="note">' + (bot.length === activePeople().length ? 'Everyone is level right now' : 'Bottom right now: <b>' + esc(namesList(bot)) + '</b>') +
-        '. Whoever is bottom on ' + lastDay + ' ' + esc(monthName) + ' buys the cleaning supplies for ' + esc(fmtMonth.format(me)) + '.</p>';
+        '. Whoever is bottom on ' + per.lastDay.getDate() + ' ' + esc(fmtMonth.format(per.lastDay)) + ' buys the cleaning supplies for ' + esc(fmtMonth.format(per.next)) + '.</p>';
     }
-    var pm = addMonths(now, -1);
-    if (pm >= cf) {
-      var pt = sumBetween(items, pm, ms), pb = bottomOf(pt);
-      notes += '<p class="note">' + esc(fmtMonth.format(pm)) + ': ' + (pb.length === activePeople().length
-        ? 'everyone finished level, so you all split the supplies for ' + esc(monthName) + '.'
-        : '<b>' + esc(namesList(pb)) + '</b> ' + (pb.length > 1 ? 'split' : 'buys') + ' the supplies for ' + esc(monthName) + '.') + '</p>';
+    var pp = prevPeriod(now);
+    if (pp) {
+      var pt = sumBetween(items, pp.from, pp.to), pb = bottomOf(pt), forMonth = esc(fmtMonth.format(pp.next));
+      notes += '<p class="note">' + esc(pp.name) + ': ' + (pb.length === activePeople().length
+        ? 'everyone finished level, so you all split the supplies for ' + forMonth + '.'
+        : '<b>' + esc(namesList(pb)) + '</b> ' + (pb.length > 1 ? 'split' : 'buy') + (pb.length > 1 ? '' : 's') + ' the supplies for ' + forMonth + '.') + '</p>';
     }
     return '<section class="card points" aria-labelledby="h-points"><div class="card-head"><h2 id="h-points">Points</h2>' +
       '<button type="button" class="btn sm" data-act="minus">Give a minus</button></div>' +
@@ -1211,7 +1229,7 @@ textarea.copy{min-height:280px;font-size:16px}
     }
 
     var m = monthLine(now);
-    html += '<section class="sum-sec"><h3>' + esc(fmtMonth.format(now)) + ' so far</h3><p class="sum-month">' + byPoints(m.totals).map(function (p) {
+    html += '<section class="sum-sec"><h3>' + esc(m.soFar) + '</h3><p class="sum-month">' + byPoints(m.totals).map(function (p) {
       return esc(p.name) + ' <b>' + fmtPts(m.totals[p.id]) + '</b>';
     }).join(' · ') + '</p><p class="note">' + esc(m.note) + (m.bottom.length ? ' Bottom at the end of the month buys the cleaning supplies.' : '') + '</p></section>';
 
@@ -1463,6 +1481,41 @@ textarea.copy{min-height:280px;font-size:16px}
     r.readAsText(file);
   }
 
+  /* ---------- fireworks when a zone is finished ---------- */
+  function fireworks() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var cs = getComputedStyle(document.documentElement), colors = [];
+    for (var n = 1; n <= 5; n++) { var v = cs.getPropertyValue('--p' + n).trim(); if (v) colors.push(v); }
+    colors.push('#ffd23f', '#ffffff');
+    var c = document.createElement('canvas'), W = window.innerWidth, H = window.innerHeight, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.className = 'fx'; c.setAttribute('aria-hidden', 'true'); c.width = W * dpr; c.height = H * dpr;
+    document.body.appendChild(c);
+    var g = c.getContext('2d'), parts = [], start = null, shots = [0, 280, 560, 840, 1150, 1450];
+    g.scale(dpr, dpr);
+    function burst() {
+      var x = W * (0.15 + Math.random() * 0.7), y = H * (0.15 + Math.random() * 0.4), col = colors[Math.floor(Math.random() * colors.length)];
+      for (var i = 0; i < 110; i++) {
+        var a = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 7;
+        parts.push({ x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, fade: 0.007 + Math.random() * 0.009, r: 3 + Math.random() * 3.5, col: i % 5 ? col : '#ffffff' });
+      }
+    }
+    function frame(t) {
+      if (start === null) start = t;
+      while (shots.length && t - start >= shots[0]) { shots.shift(); burst(); }
+      g.clearRect(0, 0, W, H);
+      parts = parts.filter(function (q) { return q.life > 0; });
+      parts.forEach(function (q) {
+        q.vy += 0.06; q.vx *= 0.985; q.vy *= 0.985; q.x += q.vx; q.y += q.vy; q.life -= q.fade;
+        g.globalAlpha = Math.max(0, q.life); g.fillStyle = q.col;
+        g.beginPath(); g.arc(q.x, q.y, q.r, 0, Math.PI * 2); g.fill();
+      });
+      if (parts.length || shots.length) window.requestAnimationFrame(frame);
+      else if (c.parentNode) c.parentNode.removeChild(c);
+    }
+    window.requestAnimationFrame(frame);
+    setTimeout(function () { if (c.parentNode) c.parentNode.removeChild(c); }, 6000);   // never left behind
+  }
+
   /* ---------- updates ---------- */
   // Every half hour (and whenever the tablet wakes) look at the live page. If its BUILD differs from the
   // one running here, the refresh button turns into "Update ready". Points are kept either way: they live
@@ -1579,7 +1632,7 @@ textarea.copy{min-height:280px;font-size:16px}
       if (!canTick(wk, new Date())) { openZone(wk, zid); return; }
       var finished = toggleItem(wk, zid, itemId);
       render(); openZone(wk, zid);
-      if (finished) toast(zoneById(zid).name + ' is done. Nice one, ' + person(week(wk).zones[zid]).name + '.');
+      if (finished) { toast(zoneById(zid).name + ' is done. Nice one, ' + person(week(wk).zones[zid]).name + '.'); fireworks(); }
     },
     sumup: function () { openSumup(defaultSumWeek(new Date())); },
     'sum-go': function (el) { openSumup(el.getAttribute('data-wk')); },
