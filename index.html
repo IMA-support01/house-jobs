@@ -160,6 +160,8 @@ button,.btn{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;us
 .ptable td{padding:6px 0 6px 12px;vertical-align:middle;text-align:right;font-size:24px;font-weight:700}
 .ptable td.person{text-align:left;padding-left:0;font-weight:600;font-size:19px;white-space:nowrap}
 .person-cell{display:flex;align-items:center;gap:12px}
+.crown{display:inline-flex;margin-left:-4px}
+.crown svg{display:block}
 .bar-cell{width:36%}
 .track{height:14px;background:var(--fill);border-radius:0 4px 4px 0;overflow:hidden}
 .bar{height:100%;background:var(--pc);border-radius:0 4px 4px 0}
@@ -303,7 +305,7 @@ textarea.copy{min-height:280px;font-size:16px}
   'use strict';
 
   var KEY = 'houseJobs.v1';
-  var BUILD = '2026-10-02a';       // changed on every publish, so the board can tell a newer one is out
+  var BUILD = '2026-10-05a';       // changed on every publish, so the board can tell a newer one is out
   var UNDO_MS = 2 * 60 * 1000;     // how long a tap can be taken back from the board
   var GRACE_HOUR = 10;             // last week's zones can still be ticked until Monday 10:00
   var PIN_OPEN_MS = 5 * 60 * 1000; // PIN stays open this long after it is typed
@@ -893,6 +895,7 @@ textarea.copy{min-height:280px;font-size:16px}
     checkSm: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
     lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
     refresh: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>',
+    crown: '<svg width="26" height="22" viewBox="0 0 26 22" aria-hidden="true"><path d="M2 7l5.5 5L13 2l5.5 10L24 7l-2.5 13h-17z" fill="#f2b600" stroke="#8a6500" stroke-width="1.5" stroke-linejoin="round"/></svg>',
     list: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>',
     alert: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>',
     minus: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>',
@@ -997,15 +1000,32 @@ textarea.copy{min-height:280px;font-size:16px}
       late + '<ul class="zone-list">' + rows + '</ul></section>';
   }
 
+  // Whoever topped last week wears the crown all this week. A tie shares it; a week where nobody scored has none.
+  function lastWeekCrown(now) {
+    var pw = prevWeek(weekKey(now));
+    if (pw < firstWeek()) return {};
+    var list = weekData(pw, now).list.filter(function (r) { return !r.p.gone; }), max = -Infinity, out = {};
+    list.forEach(function (r) { if (r.total > max) max = r.total; });
+    if (max <= 0 || list.every(function (r) { return r.total === max; })) return out;
+    list.forEach(function (r) { if (r.total === max) out[r.p.id] = true; });
+    return out;
+  }
+  function topOf(t) {
+    var act = activePeople(), max = -Infinity;
+    act.forEach(function (p) { if (t[p.id] > max) max = t[p.id]; });
+    return act.filter(function (p) { return t[p.id] === max; });
+  }
+
   function renderPoints(now, wk, items) {
     var per = periodAt(now), ms = per.from, me = per.to;
     var wt = sumBetween(items, fromKey(wk), weekEnd(wk)), mt = sumBetween(items, ms, me);
     var max = 0;
     activePeople().forEach(function (p) { if (mt[p.id] > max) max = mt[p.id]; });
-    var monthName = per.head;
+    var monthName = per.head, crown = lastWeekCrown(now);
     var rows = byPoints(mt, wt).map(function (p) {
       var m = mt[p.id], pct = max > 0 && m > 0 ? Math.round(m / max * 100) : 0;
-      return '<tr><td class="person"><span class="person-cell">' + av(p.id, 'sm') + esc(p.name) + '</span></td>' +
+      var king = crown[p.id] ? '<span class="crown" title="Top of last week">' + I.crown + '<span class="sr-only">, top of last week</span></span>' : '';
+      return '<tr><td class="person"><span class="person-cell">' + av(p.id, 'sm') + esc(p.name) + king + '</span></td>' +
         '<td class="bar-cell"><div class="track"><div class="bar who-' + colorSlot(p.id) + '" style="width:' + pct + '%"></div></div></td>' +
         '<td' + (wt[p.id] < 0 ? ' class="neg"' : '') + '>' + fmtPts(wt[p.id]) + '</td>' +
         '<td' + (m < 0 ? ' class="neg"' : '') + '>' + fmtPts(m) + '</td></tr>';
@@ -1015,16 +1035,17 @@ textarea.copy{min-height:280px;font-size:16px}
     if (!anyone) {
       notes += '<p class="note">Nobody has scored yet.</p>';
     } else {
-      var bot = bottomOf(mt);
-      notes += '<p class="note">' + (bot.length === activePeople().length ? 'Everyone is level right now' : 'Bottom right now: <b>' + esc(namesList(bot)) + '</b>') +
+      var bot = bottomOf(mt), top = topOf(mt), level = bot.length === activePeople().length;
+      notes += '<p class="note">' + (level ? 'Everyone is level right now' : 'Top right now: <b>' + esc(namesList(top)) + '</b>. Bottom right now: <b>' + esc(namesList(bot)) + '</b>') +
         '. Whoever is bottom on ' + per.lastDay.getDate() + ' ' + esc(fmtMonth.format(per.lastDay)) + ' buys the cleaning supplies for ' + esc(fmtMonth.format(per.next)) + '.</p>';
     }
     var pp = prevPeriod(now);
     if (pp) {
-      var pt = sumBetween(items, pp.from, pp.to), pb = bottomOf(pt), forMonth = esc(fmtMonth.format(pp.next));
+      var pt = sumBetween(items, pp.from, pp.to), pb = bottomOf(pt), ptop = topOf(pt), forMonth = esc(fmtMonth.format(pp.next));
       notes += '<p class="note">' + esc(pp.name) + ': ' + (pb.length === activePeople().length
         ? 'everyone finished level, so you all split the supplies for ' + forMonth + '.'
-        : '<b>' + esc(namesList(pb)) + '</b> ' + (pb.length > 1 ? 'split' : 'buy') + (pb.length > 1 ? '' : 's') + ' the supplies for ' + forMonth + '.') + '</p>';
+        : '<b>' + esc(namesList(ptop)) + '</b> topped it, and <b>' + esc(namesList(pb)) + '</b> ' + (pb.length > 1 ? 'split' : 'buy') + (pb.length > 1 ? '' : 's') +
+          ' the supplies for ' + forMonth + '.') + '</p>';
     }
     return '<section class="card points" aria-labelledby="h-points"><div class="card-head"><h2 id="h-points">Points</h2>' +
       '<button type="button" class="btn sm" data-act="minus">Give a minus</button></div>' +
