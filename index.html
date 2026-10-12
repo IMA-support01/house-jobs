@@ -305,9 +305,11 @@ textarea.copy{min-height:280px;font-size:16px}
   'use strict';
 
   var KEY = 'houseJobs.v1';
-  var BUILD = '2026-10-05a';       // changed on every publish, so the board can tell a newer one is out
+  var BUILD = '2026-10-12a';       // changed on every publish, so the board can tell a newer one is out
   var UNDO_MS = 2 * 60 * 1000;     // how long a tap can be taken back from the board
   var GRACE_HOUR = 10;             // last week's zones can still be ticked until Monday 10:00
+  // One-off later deadlines, by the week's Monday. 5 to 11 Oct: the whole house was away together.
+  var GRACE_ONEOFF = { '2026-10-05': 13 };
   var PIN_OPEN_MS = 5 * 60 * 1000; // PIN stays open this long after it is typed
   var KEEP_DAYS = 400;
   var DISH = 'dishes';
@@ -327,7 +329,8 @@ textarea.copy{min-height:280px;font-size:16px}
   function prevWeek(wk) { return dayKey(addDays(fromKey(wk), -7)); }
   function weeksBetween(a, b) { return Math.round((fromKey(b) - fromKey(a)) / 6048e5); }
   function weekEnd(wk) { return addDays(fromKey(wk), 7); }
-  function lastChance(wk) { var e = weekEnd(wk); e.setHours(GRACE_HOUR, 0, 0, 0); return e; }
+  function graceHour(wk) { return GRACE_ONEOFF[wk] || GRACE_HOUR; }
+  function lastChance(wk) { var e = weekEnd(wk); e.setHours(graceHour(wk), 0, 0, 0); return e; }
   function monthStart(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
   function addMonths(d, n) { return new Date(d.getFullYear(), d.getMonth() + n, 1); }
   function mod(a, n) { return ((a % n) + n) % n; }
@@ -722,6 +725,8 @@ textarea.copy{min-height:280px;font-size:16px}
     var changed = false, first = firstWeek();
     Object.keys(S.weeks).forEach(function (wk) {
       var w = S.weeks[wk];
+      // A tablet that closed the week at 10:00 on the old page opens it again until the later deadline.
+      if (w.res && GRACE_ONEOFF[wk] && now < lastChance(wk)) { delete w.res; changed = true; }
       if (w.res || wk < first || now < lastChance(wk)) return;
       var res = {};
       S.zones.forEach(function (z) {
@@ -968,7 +973,7 @@ textarea.copy{min-height:280px;font-size:16px}
         if (st.complete || isExcused(pw, z.id)) return;
         var who = w0.zones[z.id], left = z.items.filter(function (x) { return !st.doneAt[x.id]; });
         late += '<div class="late"><p>' + I.alert + '<span><b>Last week’s ' + esc(z.name) + '</b> (' + esc(person(who).name) + '): ' +
-          st.done + ' of ' + st.total + ' done. Last chance ' + pad(GRACE_HOUR) + ':00, or minus ' + missPts(w0, left) + '.</span></p>' +
+          st.done + ' of ' + st.total + ' done. Last chance ' + pad(graceHour(pw)) + ':00, or minus ' + missPts(w0, left) + '.</span></p>' +
           '<button type="button" class="btn sm" data-act="zone" data-wk="' + pw + '" data-id="' + z.id + '">Open last week’s list</button></div>';
       });
     }
@@ -1148,7 +1153,7 @@ textarea.copy{min-height:280px;font-size:16px}
     var cur = wk === weekKey(now);
     var lead = !editable ? 'This week is closed, so the list can’t change now.'
       : cur ? possessive(esc(person(who).name)) + ' zone this week. Tick each job as you do it, any day before Sunday night.'
-      : 'Last week’s list for ' + esc(person(who).name) + '. Last chance until ' + pad(GRACE_HOUR) + ':00 today.';
+      : 'Last week’s list for ' + esc(person(who).name) + '. Last chance until ' + pad(graceHour(wk)) + ':00 today.';
     var rows = z.items.map(function (x) {
       var on = st.doneAt[x.id];
       return '<li><button type="button" class="citem' + (on ? ' on' : '') + '" data-act="item" data-wk="' + wk + '" data-zone="' + zid + '" data-id="' + x.id + '" aria-pressed="' + (on ? 'true' : 'false') + '"' + (editable ? '' : ' disabled') + '>' +
@@ -1241,7 +1246,7 @@ textarea.copy{min-height:280px;font-size:16px}
         if (d.mode === 'task' && x.missed.length) more = '<span class="missed">Not done: ' + esc(x.missed.join(', ')) + '</span>';
       }
       else if (x.state === 'excused') st = '<span class="zstate wait">Let off, no minus</span>';
-      else if (x.state === 'grace') st = '<span class="zstate bad">' + x.st.done + ' of ' + x.st.total + ' done, last chance ' + pad(GRACE_HOUR) + ':00</span>';
+      else if (x.state === 'grace') st = '<span class="zstate bad">' + x.st.done + ' of ' + x.st.total + ' done, last chance ' + pad(graceHour(wk)) + ':00</span>';
       else st = '<span class="zstate wait">' + x.st.done + ' of ' + x.st.total + ' done</span>';
       return '<li>' + av(x.who, 'sm') + '<span><b>' + esc(x.z.name) + '</b> <span class="muted">' + esc(person(x.who).name) + '</span></span>' + st + more + '</li>';
     }).join('') + '</ul></section>';
