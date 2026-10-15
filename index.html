@@ -305,13 +305,14 @@ textarea.copy{min-height:280px;font-size:16px}
   'use strict';
 
   var KEY = 'houseJobs.v1';
-  var BUILD = '2026-10-12a';       // changed on every publish, so the board can tell a newer one is out
+  var BUILD = '2026-10-15a';       // changed on every publish, so the board can tell a newer one is out
   var UNDO_MS = 2 * 60 * 1000;     // how long a tap can be taken back from the board
   var GRACE_HOUR = 10;             // last week's zones can still be ticked until Monday 10:00
   // One-off later deadlines, by the week's Monday. 5 to 11 Oct: the whole house was away together.
   var GRACE_ONEOFF = { '2026-10-05': 13 };
   var PIN_OPEN_MS = 5 * 60 * 1000; // PIN stays open this long after it is typed
   var KEEP_DAYS = 400;
+  var HOUSE_ROTA_START = '2026-09-28';   // the week the house's rota began; a new tablet picks it up from here
   var DISH = 'dishes';
   var DISH_NAME = 'Wash others’ dishes';
   var REASONS = ['Left dishes', 'Left stuff out', 'Didn’t bin it', 'Mess in the kitchen', 'Other'];
@@ -417,8 +418,8 @@ textarea.copy{min-height:280px;font-size:16px}
       zones: houseZones(),
       // rot.zones[i] = who has zone i in the anchor week; everyone moves on one each Monday.
       // With more people than zones, whoever has no zone that week is captain.
-      rot: { anchor: weekKey(now), zones: ['p2', 'p3', 'p4', 'p5'], captain: 'p1' },
-      layout: 8,
+      rot: { anchor: HOUSE_ROTA_START, zones: ['p2', 'p3', 'p4', 'p5'], captain: 'p1' },
+      layout: 9,
       penalty: 1,          // minus for each zone task not ticked by Sunday night
       penMode: 'task',
       dishesPer: 2,        // someone else's dishes: this many for 1 point
@@ -658,6 +659,16 @@ textarea.copy{min-height:280px;font-size:16px}
         S.jobs.splice(at++, 0, { id: 'j' + uid(), name: d[0], pts: d[1], lock: d[2] });
       });
       S.layout = 8; did = true;
+    }
+    if (S.layout < 9) {
+      // 15 Oct: a board started on a new tablet began the rota from scratch, with Michal as captain. A rota
+      // nobody has touched is lined back up with the house's, which began on 28 Sept; open weeks are redrawn.
+      var r = S.rot, untouched = r && r.anchor > HOUSE_ROTA_START && r.anchor === firstWeek() && r.captain === 'p1' && (r.zones || []).join(',') === 'p2,p3,p4,p5';
+      if (untouched) {
+        r.anchor = HOUSE_ROTA_START;
+        Object.keys(S.weeks).forEach(function (wk) { if (!S.weeks[wk].res) delete S.weeks[wk]; });
+      }
+      S.layout = 9; did = true;
     }
     return did;
   }
